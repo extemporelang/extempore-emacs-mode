@@ -672,6 +672,7 @@ indentation."
 (make-variable-buffer-local 'mode-line-process)
 (setq mode-line-process nil)
 (make-variable-buffer-local 'extempore-connection-list)
+(defvar extempore-connection-list)
 (setq extempore-connection-list nil)
 
 (defun extempore-update-mode-line ()
@@ -851,23 +852,13 @@ indentation."
     (overlay-put overlay 'face face-sym)
     overlay))
 
-;; overlay for highlighting currently evaluated region or line
-(setq extempore-blink-overlay
-      (extempore-make-blink-overlay 'extempore-blink-face))
-;; slave buffer version
-(setq extempore-sb-blink-overlay
-      (extempore-make-blink-overlay 'extempore-sb-blink-face))
+(defvar extempore-blink-overlay (extempore-make-blink-overlay 'extempore-blink-face)
+  "overlay for highlighting currently evaluated region or line")
+
+(defvar extempore-sb-blink-overlay (extempore-make-blink-overlay 'extempore-sb-blink-face) "slave buffer version")
 
 ;; for blinking evals in slave buffers (see `extempore-sb-mode')
-(make-variable-buffer-local 'extempore-sb-eval-markers)
-
-(defun extempore-blink-region (overlay start end &optional buf)
-  (move-overlay overlay start end buf)
-  (if extempore-sb-mode
-      (setq extempore-sb-eval-markers (cons start end)))
-  (redisplay)
-  (sleep-for extempore-blink-duration)
-  (delete-overlay overlay))
+(defvar-local extempore-sb-eval-markers nil)
 
 ;; sending definitions (code) from the Emacs buffer
 
@@ -1336,6 +1327,7 @@ command to run."
 	(progn (kill-word 1)
 	       (insert (number-to-string (string-to-number hex-str 16)))))))
 
+;; nb. it appears flycheck does not like the case macro, and will complain about malformed functions
 (defun note-to-midi (str)
   (if (string-match "\\([a-gA-G]\\)\\(#\\|b\\)?\\(-?[0-9]\\)" str)
       (let ((pc (case (mod (- (mod (string-to-char (match-string 1 str))
@@ -1955,7 +1947,7 @@ backend in Extempore."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; extempore slave buffer minor mode ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+(defvar extempore-sb-mode)
 (define-minor-mode extempore-sb-mode
   "This minor allows emacs to create a 'slave' buffer on
 another (potentially remote) emacs instance.
@@ -1973,6 +1965,15 @@ buffer."
   (if extempore-sb-mode
       (call-interactively #'extempore-sb-start)
     (extempore-sb-stop)))
+
+(defun extempore-blink-region (overlay start end &optional buf)
+  (move-overlay overlay start end buf)
+  (if extempore-sb-mode
+      (setq extempore-sb-eval-markers (cons start end)))
+  (redisplay)
+  (sleep-for extempore-blink-duration)
+  (delete-overlay overlay))
+
 
 (defcustom extempore-sb-server-port 8420
   "Port for the the extempore slave buffer server."
