@@ -1,7 +1,9 @@
 ;;; extempore.el --- Emacs major mode for Extempore source files
-
 ;; Author: Ben Swift <ben@benswift.me>
 ;; Keywords: Extempore
+;; Version: 1.0
+;; Keywords: lisp, extempore
+;; URL: http://github.com/extemporelang/extempore-emacs-mode
 
 ;; Adapted from: scheme.el by Bill Rozas and Dave Love
 ;; Also includes some work done by Hector Levesque and Andrew Sorensen
