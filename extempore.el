@@ -561,13 +561,6 @@ indentation."
     (backward-sexp 1)
     (buffer-substring (point) the-end)))
 
-;; This is correct but too slow.
-;; The one below works almost always.
-;;(defun extempore-let-indent (state indent-point)
-;;  (if (would-be-symbol (next-sexp-as-string))
-;;      (extempore-indent-specform 2 state indent-point)
-;;      (extempore-indent-specform 1 state indent-point)))
-
 (defun extempore-let-indent (state indent-point normal-indent)
   (skip-chars-forward " \t")
   (if (looking-at "[-a-zA-Z0-9+*/?!@$%^&_:~]")
@@ -596,14 +589,10 @@ indentation."
 (put 'letz 'extempore-indent-function 'extempore-let-indent)
 (put 'let* 'extempore-indent-function 'extempore-let-indent)
 (put 'letrec 'extempore-indent-function 'extempore-let-indent)
-;; (put 'let-values 'extempore-indent-function 1) ; SRFI 11
-;; (put 'let*-values 'extempore-indent-function 1) ; SRFI 11
-;; (put 'sequence 'extempore-indent-function 0) ; SICP, not r4rs
 (put 'let-syntax 'extempore-indent-function 1)
 (put 'letrec-syntax 'extempore-indent-function 1)
 (put 'syntax-rules 'extempore-indent-function 1)
 (put 'syntax-case 'extempore-indent-function 2) ; not r5rs
-
 (put 'call-with-input-file 'extempore-indent-function 1)
 (put 'with-input-from-file 'extempore-indent-function 1)
 (put 'with-input-from-port 'extempore-indent-function 1)
@@ -624,7 +613,6 @@ indentation."
   (message (extempore-slip-unescape-string str)))
 
 ;; connection management
-
 (make-variable-buffer-local 'mode-line-process)
 (setq mode-line-process nil)
 (make-variable-buffer-local 'extempore-connection-list)
@@ -1257,7 +1245,6 @@ command to run."
                    'extempore-eldoc-documentation-function)))
 
 ;; misc bits and pieces
-
 (defun xpb1 (name duration)
   (interactive "sName: \nsDuration: ")
   (insert (concat "(define " name
@@ -1267,7 +1254,6 @@ command to run."
 		  "(" name " (*metro* 'get-beat 4) " duration ")")))
 
 ;; for greek symbol lambdas: from emacs-starter-kit
-
 (if extempore-use-pretty-lambdas
     (font-lock-add-keywords
      nil `(("(?\\(lambda\\>\\)"
@@ -1320,7 +1306,6 @@ command to run."
                                0))))))))
 
 ;; interactive repeated evaluation of defun under point
-
 (defvar extempore-repeated-eval-timer nil)
 
 (defun extempore-start-repeated-eval (time-interval)
@@ -1335,7 +1320,6 @@ command to run."
   (setq extempore-repeated-eval-timer nil))
 
 ;; processing compiler output for .xtmh files
-
 (defun extempore-process-compiler-output (libname)
   (interactive "slibname: ")
   (unless (region-active-p)
@@ -1381,6 +1365,7 @@ command to run."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; extempore slave buffer minor mode ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defvar extempore-sb-mode)
 (define-minor-mode extempore-sb-mode
   "This minor allows emacs to create a 'slave' buffer on
