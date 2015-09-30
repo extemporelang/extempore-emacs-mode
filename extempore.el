@@ -767,19 +767,11 @@ indentation."
 (defun extempore-make-crlf-evalstr (evalstr)
   (concat evalstr "\r\n"))
 
-(defun extempore-make-osc-evalstr (evalstr)
-  (concat (extempore-make-osc-string "/caas/eval")
-          (extempore-make-osc-string ",s")
-          (extempore-make-osc-string evalstr)))
 
 (defun extempore-make-slip-evalstr (evalstr)
   (extempore-slip-escape-string evalstr))
 
-(defun extempore-make-slip-osc-evalstr (evalstr)
-  (extempore-slip-escape-string (extempore-make-osc-evalstr evalstr)))
-
 ;; sending code to the Extempore compiler
-
 ;; from http://emacswiki.org/emacs/ElispCookbook
 (defun chomp (str)
   "Chomp leading and tailing whitespace from STR."
