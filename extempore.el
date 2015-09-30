@@ -101,7 +101,7 @@
     (modify-syntax-entry ?# "'   " st)
     (modify-syntax-entry ?\\ "\\   " st)
     st))
-
+
 (defvar extempore-mode-abbrev-table nil)
 (define-abbrev-table 'extempore-mode-abbrev-table ())
 
@@ -184,7 +184,7 @@
     smap)
   "Keymap for Extempore mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
-
+
 ;;;###autoload
 (define-derived-mode extempore-mode prog-mode "Extempore"
   "Major mode for editing Extempore code. This mode has been
@@ -657,7 +657,7 @@ indentation."
 (put 'with-output-to-port 'extempore-indent-function 1)
 (put 'call-with-values 'extempore-indent-function 1) ; r5rs?
 (put 'dynamic-wind 'extempore-indent-function 3) ; r5rs?
-
+
 
 ;;; SLIP escape codes
 ;; END       ?\300    /* indicates end of packet */
