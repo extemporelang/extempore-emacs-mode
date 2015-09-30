@@ -1822,25 +1822,6 @@ If you don't want to be prompted for this name each time, set the
     (goto-char (point-min))
     (call-interactively parse-fn)))
 
-;; help displaying LLVM IR
-(defun extempore-show-ir-in-temp-buffer (beg end)
-  (interactive "r")
-  (save-excursion
-    (let ((ir-str (buffer-substring-no-properties beg end)))
-      (with-current-buffer (get-buffer-create "*extempore LLVM IR*")
-        (if (not (equalp major-mode 'llvm-mode))
-            (llvm-mode))
-        (delete-region (point-min) (point-max))
-        (insert (replace-regexp-in-string "\\\\n" "\n" ir-str))
-        (display-buffer "*extempore LLVM IR*" #'display-buffer-pop-up-window)))))
-
-;; AOT-compilation help
-
-(defun extempore-AOT-compile-lib (lib-path)
-  (interactive "sLibrary: ")
-  (let ((default-directory extempore-share-directory))
-    (async-shell-command (format "AOT_LIBS=\"%s\" ./compile-stdlib.sh --port=17199" lib-path))))
-
 (provide 'extempore)
 
 ;;; extempore.el ends here
