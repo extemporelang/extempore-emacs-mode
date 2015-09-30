@@ -1068,13 +1068,6 @@ Then switch to the process buffer."
   (extempore-send-definition)
   (switch-to-extempore t))
 
-(defun extempore-send-buffer-or-region-and-go (start end)
-  "Send the current region to the inferior Extempore process.
-Then switch to the process buffer."
-  (interactive "r")
-  (extempore-send-bufer-or-region start end)
-  (switch-to-extempore t))
-
 (defvar extempore-prev-l/c-dir/file nil
   "Caches the last (directory . file) pair.
 Caches the last pair used in the last `extempore-load-file' or
