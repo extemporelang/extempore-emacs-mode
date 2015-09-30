@@ -320,51 +320,6 @@ To restore the old C-x prefixed versions, add something like this to your .emacs
                  (dabbrev-expand nil)
                (indent-for-tab-command)))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; generate function name lists from source files
-;;
-;; scheme ones from OPDefines.h
-;; xtlang from llvm.ti
-;; (these files need to be open in buffers for the below functions to
-;; work properly)
-;;
-;; this stuff is currently a bit fragile, so I've hardcoded in the
-;; names as they stand at 14/7/12
-
-(defun extempore-find-scheme-names (names)
-  (if (re-search-forward "\".*\"" nil t)
-      (extempore-find-scheme-names
-       (cons (buffer-substring-no-properties
-              (+ (car (match-data)) 1)
-              (- (cadr (match-data)) 1))
-             names))
-    (delete-dups names)))
-
-;; (setq extempore-scheme-names
-;;       (cl-set-difference
-;;        (with-current-buffer "OPDefines.h"
-;;          (goto-char (point-min))
-;;          (extempore-find-scheme-names '()))
-;;        extempore-builtin-names))
-
-(defun extempore-find-xtlang-names (names)
-  (if (re-search-forward "(\\(member\\|equal\\?\\|eq\\?\\) \\((car ast)\\|ast\\) \'" nil t)
-      (let ((syms (read (thing-at-point 'sexp))))
-        (extempore-find-xtlang-names
-         (if (listp syms)
-             (append syms names)
-           (cons syms names))))
-    (delete-dups (mapcar 'symbol-name names))))
-
-;; (setq extempore-xtlang-names
-;;       (cl-set-difference
-;;        (with-current-buffer "llvmti.xtm"
-;;          (goto-char (point-min))
-;;          (extempore-find-xtlang-names '()))
-;;        (append extempore-builtin-names
-;;                extempore-scheme-names)
-;;        :test 'string-equal))
-
 (defconst extempore-font-lock-keywords-scheme
   ;; scheme language builtin & function names - used for font locking
   ;; (colouring).
@@ -593,7 +548,7 @@ indentation."
 	      (method
                (funcall method state indent-point normal-indent)))))))
 
-
+
 ;;; 'let' is different in Scheme/xtlang
 
 (defun would-be-symbol (string)
