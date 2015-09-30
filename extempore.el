@@ -5,9 +5,6 @@
 ;; Keywords: lisp, extempore
 ;; URL: http://github.com/extemporelang/extempore-emacs-mode
 
-;; Adapted from: scheme.el by Bill Rozas and Dave Love
-;; Also includes some work done by Hector Levesque and Andrew Sorensen
-
 ;; Copyright (c) 2011-2015, Andrew Sorensen
 
 ;; All rights reserved.
@@ -39,6 +36,9 @@
 ;; POSSIBILITY OF SUCH DAMAGE.
 
 ;;; Commentary:
+
+;; Adapted from: scheme.el by Bill Rozas and Dave Love
+;; Also includes some work done by Hector Levesque and Andrew Sorensen
 
 ;; A major mode for editing Extempore code. See the Extempore project
 ;; page at http://github.com/digego/extempore for more details.
