@@ -1568,7 +1568,7 @@ If you don't want to be prompted for this name each time, set the
 ;; `extempore-sb-partial-data' is for handling buffer text recieved by
 ;; the filter in multiple chunks
 (make-variable-buffer-local 'extempore-sb-partial-data)
-(setq extempore-sb-partial-data nil)
+(defvar extempore-sb-partial-data nil)
 
 (defun extempore-sb-server-filter (proc str)
   (let ((proc-buf (process-buffer proc)))
@@ -1646,6 +1646,7 @@ If you don't want to be prompted for this name each time, set the
 
 (make-variable-buffer-local 'extempore-sb-push-timer)
 
+(defvar extempore-sb-push-timer)
 (defun extempore-sb-start-timer (buf time-interval)
   (setq extempore-sb-push-timer
         (run-with-timer 0 time-interval #'extempore-sb-sync-slave-buffer buf)))
