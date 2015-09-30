@@ -48,15 +48,13 @@
 ;; To set up Emacs to automatically load this major mode for any .xtm
 ;; files, add the following lines to your .emacs
 
-;; (autoload 'extempore-mode "/path/to/extempore/extras/extempore.el" "" t)
-;; (autoload 'extempore-repl "/path/to/extempore/extras/extempore.el" "" t)
-;; (add-to-list 'auto-mode-alist '("\\.xtm$" . extempore-mode))
+;; 
 
 ;; Currently, extempore.el requires Emacs 24, because it inherits from
 ;; prog-mode (via lisp-mode)
 
 ;;; Code:
-
+
 (require 'lisp-mode)
 (require 'eldoc)
 ;; to support both 24.3 and earlier
@@ -201,6 +199,9 @@ To send the current definition to a running Extempore process, use
 \\[extempore-send-definition].
 "
   (extempore-mode-variables))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.xtm$" . extempore-mode))
 
 (defgroup extempore nil
   "Editing Extempore code."
