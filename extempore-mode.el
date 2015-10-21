@@ -72,10 +72,10 @@
     (modify-syntax-entry ?, "_   " st)
     (modify-syntax-entry ?< "_   " st)
     (modify-syntax-entry ?> "_   " st)
-    (modify-syntax-entry ?\[ "_   " st)
-    (modify-syntax-entry ?\] "_   " st)
-    (modify-syntax-entry ?{ "_   " st)
-    (modify-syntax-entry ?} "_   " st)
+    (modify-syntax-entry ?\{ "(}" st)
+    (modify-syntax-entry ?\} "){" st)
+    (modify-syntax-entry ?\[ "(]" st)
+    (modify-syntax-entry ?\] ")[" st)
     ;; colons are used to separate type annotations
     (modify-syntax-entry ?: ".   " st)
     ;; Whitespace
