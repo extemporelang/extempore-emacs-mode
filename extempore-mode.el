@@ -1826,4 +1826,4 @@ If you don't want to be prompted for this name each time, set the
 
 (provide 'extempore-mode)
 
-;;; extempore.el ends here
+;;; extempore-mode.el ends here
