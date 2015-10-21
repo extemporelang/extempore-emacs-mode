@@ -1,4 +1,4 @@
-;;; extempore.el --- Emacs major mode for Extempore source files
+;;; extempore-mode.el --- Emacs major mode for Extempore source files
 ;; Author: Ben Swift <ben@benswift.me>
 ;; Keywords: Extempore
 ;; Version: 1.0
@@ -99,6 +99,10 @@
     (modify-syntax-entry ?@ "'   " st)
     (modify-syntax-entry ?# "'   " st)
     (modify-syntax-entry ?\\ "\\   " st)
+    
+    (modify-syntax-entry ?\[ "(]  " st)
+    (modify-syntax-entry ?\] ")[  " st)
+    
     st))
 
 (defvar extempore-mode-abbrev-table nil)
