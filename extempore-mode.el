@@ -55,10 +55,10 @@
 ;;; Code:
 
 (require 'lisp-mode)
+(require 'thingatpt)
 (require 'eldoc)
-;; to support both 24.3 and earlier
-(unless (require 'cl-lib nil t)
-  (require 'cl))
+(require 'cl-macs)
+(require 'subr-x)
 
 (defvar extempore-mode-syntax-table
   (let ((st (make-syntax-table))
@@ -870,7 +870,7 @@ to continue it."
 (defun extempore-repl-toggle-current-language ()
   "toggle between scheme and xtlang"
   (interactive)
-  (if (equalp extempore-repl-current-language 'scheme)
+  (if (eq extempore-repl-current-language 'scheme)
       (setq-local extempore-repl-current-language 'xtlang)
     (setq-local extempore-repl-current-language 'scheme))
   (extempore-repl-reset-prompt))
@@ -880,7 +880,7 @@ to continue it."
                       ;; if in xtlang mode (and not bind-{func,val,
                       ;; etc.} ing), wrap expression in a
                       ;; `call-as-xtlang' form
-                      (format (if (and (equalp extempore-repl-current-language 'xtlang)
+                      (format (if (and (eq extempore-repl-current-language 'xtlang)
                                        (not (string-match "^ *(bind-" string)))
                                   "(call-as-xtlang %s)\r"
                                 "%s\r")
@@ -889,7 +889,7 @@ to continue it."
 (defun extempore-repl-propertized-prompt-string ()
   (let ((proc (get-buffer-process (current-buffer))))
     (format "\n%s<%s> "
-            (if (equalp extempore-repl-current-language 'xtlang)
+            (if (eq extempore-repl-current-language 'xtlang)
                 (propertize "xtlang" 'font-lock-face 'font-lock-variable-name-face)
               (propertize "scheme" 'font-lock-face 'font-lock-type-face))
             (let ((host (process-contact proc :host))
@@ -1260,7 +1260,7 @@ command to run."
 ;; nb. it appears flycheck does not like the case macro, and will complain about malformed functions
 (defun note-to-midi (str)
   (if (string-match "\\([a-gA-G]\\)\\(#\\|b\\)?\\(-?[0-9]\\)" str)
-      (let ((pc (case (mod (- (mod (string-to-char (match-string 1 str))
+      (let ((pc (cl-case (mod (- (mod (string-to-char (match-string 1 str))
                                     16) 3) 7)
                    ((0) 0) ((1) 2) ((2) 4) ((3) 5) ((4) 7) ((5) 9) ((6) 11)))
              (offset (+ 12 (* (string-to-number (match-string 3 str))
@@ -1276,7 +1276,7 @@ command to run."
   (let ((note-str (looking-at "\\([a-gA-G]\\)\\(#\\|b\\)?\\([0-9]\\)")))
     (if note-str
         (let* ((data (match-data))
-               (pc (case (mod (- (mod (string-to-char (buffer-substring
+               (pc (cl-case (mod (- (mod (string-to-char (buffer-substring
                                                        (nth 2 data)
                                                        (nth 3 data)))
                                       16) 3) 7)
@@ -1504,7 +1504,7 @@ If you don't want to be prompted for this name each time, set the
     (if (null proc-buf)
         (let ((data (ignore-errors (read str))))
 	  (if (and data (string= (car data) "esb-data"))
-	      (extempore-sb-create-slave-buffer proc (cadr data) (caddr data))))
+	      (extempore-sb-create-slave-buffer proc (cadr data) (nth 2 data))))
       (with-current-buffer proc-buf
         (setq extempore-sb-partial-data (concat extempore-sb-partial-data str))
 	(if (not (ignore-errors (string= (substring extempore-sb-partial-data 0 11)
@@ -1720,7 +1720,7 @@ If you don't want to be prompted for this name each time, set the
           ((= (length elements) 3)
            (concat (extempore-parser-map-c-type-to-xtlang-type
                     (concat (car elements) " " (cadr elements)))
-                   (extempore-parser-extract-pointer-string (caddr elements))))
+                   (extempore-parser-extract-pointer-string (nth 2 elements))))
           (t (message "cannot parse arg string: \"%s\"" arg-str)
              ""))))
 
@@ -1753,7 +1753,7 @@ If you don't want to be prompted for this name each time, set the
         (replace-match
          (save-match-data
            (format "(%s %s)"
-                   (s-trim-left (match-string-no-properties 1))
+                   (string-trim-left (match-string-no-properties 1))
                    (replace-regexp-in-string "[, ]+" " " (match-string-no-properties 2))))
          nil :literal)
         (indent-for-tab-command))))
