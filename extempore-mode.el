@@ -1824,6 +1824,6 @@ If you don't want to be prompted for this name each time, set the
     (goto-char (point-min))
     (call-interactively parse-fn)))
 
-(provide 'extempore)
+(provide 'extempore-mode)
 
 ;;; extempore.el ends here
