@@ -61,23 +61,24 @@
 (require 'subr-x)
 
 (defvar extempore-mode-syntax-table
-  (let ((st (make-syntax-table)))
+  (let ((st (make-syntax-table))
+        (i 0))
     ;; Symbol constituents
-    (modify-syntax-entry (cons ?0 ?9) "w   " st)
-    (modify-syntax-entry (cons ?A ?Z) "w   " st)
-    (modify-syntax-entry (cons ?a ?z) "w   " st)
-    ;; symbol characters
-    (modify-syntax-entry ?_ "_   " st)
-    (modify-syntax-entry ?* "_   " st)
-    (modify-syntax-entry ?, "_   " st)
-    (modify-syntax-entry ?< "_   " st)
-    (modify-syntax-entry ?> "_   " st)
-    (modify-syntax-entry ?\{ "(}" st)
-    (modify-syntax-entry ?\} "){" st)
-    (modify-syntax-entry ?\[ "(]" st)
-    (modify-syntax-entry ?\] ")[" st)
-    ;; colons are used to separate type annotations
-    (modify-syntax-entry ?: ".   " st)
+    (while (< i ?0)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?9))
+    (while (< i ?A)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?Z))
+    (while (< i ?a)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?z))
+    (while (< i 128)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
     ;; Whitespace
     (modify-syntax-entry ?\t "    " st)
     (modify-syntax-entry ?\n ">   " st)
@@ -92,10 +93,15 @@
     (modify-syntax-entry ?\" "\"   " st)
     (modify-syntax-entry ?' "'   " st)
     (modify-syntax-entry ?` "'   " st)
+    ;; in xtlang, commas are used in type annotations
+    (modify-syntax-entry ?, "_   " st)
     ;; Special characters
     (modify-syntax-entry ?@ "'   " st)
     (modify-syntax-entry ?# "'   " st)
     (modify-syntax-entry ?\\ "\\   " st)
+    ;; add square brackets
+    (modify-syntax-entry ?\[ "(]  " st)
+    (modify-syntax-entry ?\] ")[  " st)
     st))
 
 (defvar extempore-mode-abbrev-table nil)
