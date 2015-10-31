@@ -99,9 +99,6 @@
     (modify-syntax-entry ?@ "'   " st)
     (modify-syntax-entry ?# "'   " st)
     (modify-syntax-entry ?\\ "\\   " st)
-    ;; add square brackets
-    (modify-syntax-entry ?\[ "(]  " st)
-    (modify-syntax-entry ?\] ")[  " st)
     st))
 
 (defvar extempore-mode-abbrev-table nil)
