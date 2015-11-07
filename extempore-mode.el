@@ -715,6 +715,13 @@ indentation."
   (extempore-sync-connections)
   (extempore-new-connection host port))
 
+(defun extempore-connect-multiple ()
+  "assumes that `extempore-multiple-connection-list' exists"
+  (interactive)
+  (if (local-variable-p 'extempore-multiple-connection-list)
+      (dolist (host-port extempore-multiple-connection-list)
+        (extempore-connect (car host-port) (cdr host-port)))))
+
 (defun extempore-connect-or-disconnect (prefix)
   (interactive "P")
   (if prefix
