@@ -654,14 +654,15 @@ indentation."
 
 (defun extempore-new-connection (host port)
   (if (extempore-get-connection host port)
-      (message "Already connected to %s on port %d" host port)
-      (let ((proc (open-network-stream "extempore" nil host port)))
+      (message "Already connected to Extempore at %s:%d" host port)
+    (let ((proc (with-demoted-errors (open-network-stream "extempore" nil host port))))
         (if proc
             (progn
               (set-process-coding-system proc 'iso-latin-1-unix 'iso-latin-1-unix)
               (set-process-filter proc #'extempore-minibuffer-echo-filter)
               (add-to-list 'extempore-connection-list proc t)
-              (extempore-update-mode-line))))))
+              (extempore-update-mode-line))
+          (message "Could not connect to Extempore at %s:%d" host port)))))
 
 (defun extempore-disconnect (host port)
   "Terminate a specific connection to an Extempore process"
@@ -1024,7 +1025,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
            (concat (buffer-substring-no-properties start end) "\r\n")))
         (extempore-blink-region extempore-blink-overlay start end)
         (sleep-for extempore-blink-duration))
-    (error "Buffer %s is not connected to an Extempore process.  You can connect with `M-x extempore-connect' (C-c C-j)" (buffer-name))))
+    (error "This buffer is not connected to an Extempore process.  You can connect with `M-x extempore-connect' (C-c C-j)" (buffer-name))))
 
 (defun extempore-send-definition ()
   "Send the current definition to the inferior Extempore process."
