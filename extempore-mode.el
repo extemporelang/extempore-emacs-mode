@@ -722,6 +722,19 @@ indentation."
       (dolist (host-port extempore-multiple-connection-list)
         (extempore-connect (car host-port) (cdr host-port)))))
 
+(defun extempore-connect-port-range (host start count)
+  (interactive
+   (list (ido-completing-read
+          "Hostname: " (cl-remove-duplicates (cons extempore-default-host extempore-connect-host-history-list) :test #'string=) nil nil nil 'extempore-connect-host-history-list extempore-default-host)
+         (string-to-number
+          (ido-completing-read
+           "Starting port: " (cl-remove-duplicates (append '("7099" "7098") extempore-connect-port-history-list) :test #'string=) nil nil nil 'extempore-connect-port-history-list (number-to-string extempore-default-port)))
+         (string-to-number
+          (ido-completing-read
+           "Number of ports: " nil))))
+  (dotimes (port count)
+    (extempore-connect host (+ start port))))
+
 (defun extempore-connect-or-disconnect (prefix)
   (interactive "P")
   (if prefix
