@@ -1777,6 +1777,19 @@ If you don't want to be prompted for this name each time, set the
          nil :literal)
         (indent-for-tab-command))))
 
+(defun extempore-parser-process-function-arg-names ()
+  (interactive)
+  (if (re-search-forward "\s*(\\([^(]*?\\));?" nil :noerror)
+      (progn
+        (replace-match
+         (save-match-data
+           (format "(%s)"
+                   (mapconcat (lambda (str) (car-safe (reverse (string-utils-split str "[ \f\t\n\r\v*]+" nil :omit-nulls))))
+                              (string-utils-split (match-string-no-properties 1) "[][,]+" :omit-nulls)
+                              " ")))
+         nil :literal)
+        (indent-for-tab-command))))
+
 (defun extempore-parser-process-function-prototypes (libname ignore-tokens)
   (interactive
    (list (read-from-minibuffer "libname: ")
