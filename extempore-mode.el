@@ -715,8 +715,13 @@ indentation."
   (extempore-sync-connections)
   (extempore-new-connection host port))
 
+(defvar extempore-multiple-connection-list nil)
+
 (defun extempore-connect-multiple ()
-  "assumes that `extempore-multiple-connection-list' exists"
+  "connect to multiple extempore processes
+
+`extempore-multiple-connection-list' should be of the form
+((\"hostname1\" . port1) (\"hostname2\" . port2)) etc."
   (interactive)
   (if (local-variable-p 'extempore-multiple-connection-list)
       (dolist (host-port extempore-multiple-connection-list)
