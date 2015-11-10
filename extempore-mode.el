@@ -1020,7 +1020,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
 
   (interactive (list (read-string "Run Extempore: extempore " extempore-program-args)))
   (unless extempore-share-directory
-    (error "Error: `extempore-share-directory' not set!\n\nNote that this var used to be called `extempore-path', so you may need to update your .emacs"))
+    (error "Error: `extempore-share-directory' not set!\n\nNote that this var used to be called `user-extempore-directory', so you may need to update your .emacs"))
   (if (not (comint-check-proc "*extempore*"))
       (let* ((default-directory (file-name-as-directory
                                  (expand-file-name extempore-share-directory)))
