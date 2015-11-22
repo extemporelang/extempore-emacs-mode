@@ -4,6 +4,7 @@
 ;; Version: 1.0
 ;; Keywords: lisp, extempore
 ;; URL: http://github.com/extemporelang/extempore-emacs-mode
+;; Package-Requires:((emacs "24.4") (string-utils "0.3.2"))
 
 ;; Copyright (c) 2011-2015, Andrew Sorensen
 
@@ -59,8 +60,9 @@
 (require 'lisp-mode)
 (require 'thingatpt)
 (require 'eldoc)
-(require 'cl-macs)
+(require 'cl-lib)
 (require 'subr-x)
+(require 'string-utils)
 
 (defvar extempore-mode-syntax-table
   (let ((st (make-syntax-table))
