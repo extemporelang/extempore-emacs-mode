@@ -301,10 +301,7 @@ To restore the old C-x prefixed versions, add something like this to your .emacs
   (define-key keymap (kbd "C-c M-r") 'extempore-send-buffer-or-region-and-go)
   (define-key keymap (kbd "C-c C-z") 'switch-to-extempore)
   (define-key keymap (kbd "C-c C-e") 'extempore-repl)
-  (define-key keymap (kbd "C-c C-l") 'exlog-mode)
-  ;; slave buffer mode
-  (define-key keymap (kbd "C-c c s") 'extempore-sb-mode)
-  (define-key keymap (kbd "C-c c p") 'extempore-sb-toggle-current-buffer))
+  (define-key keymap (kbd "C-c C-l") 'exlog-mode))
 
 (extempore-keybindings extempore-mode-map)
 
