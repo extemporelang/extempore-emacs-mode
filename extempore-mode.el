@@ -4,7 +4,7 @@
 ;; Version: 1.0
 ;; Keywords: lisp, extempore
 ;; URL: http://github.com/extemporelang/extempore-emacs-mode
-;; Package-Requires:((emacs "24.4") (string-utils "0.3.2"))
+;; Package-Requires:((emacs "24.4"))
 
 ;; Copyright (c) 2011-2015, Andrew Sorensen
 
@@ -62,7 +62,7 @@
 (require 'eldoc)
 (require 'cl-lib)
 (require 'subr-x)
-(require 'string-utils)
+
 
 (defvar extempore-mode-syntax-table
   (let ((st (make-syntax-table))
@@ -1796,8 +1796,8 @@ If you don't want to be prompted for this name each time, set the
         (replace-match
          (save-match-data
            (format "(%s)"
-                   (mapconcat (lambda (str) (car-safe (reverse (string-utils-split str "[ \f\t\n\r\v*]+" nil :omit-nulls))))
-                              (string-utils-split (match-string-no-properties 1) "[][,]+" :omit-nulls)
+                   (mapconcat (lambda (str) (car-safe (reverse (split-string str "[ \f\t\n\r\v*]+" :omit-nulls))))
+                              (split-string (match-string-no-properties 1) "[][,]+" :omit-nulls)
                               " ")))
          nil :literal)
         (indent-for-tab-command))))
