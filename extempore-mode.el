@@ -1858,7 +1858,7 @@ If you don't want to be prompted for this name each time, set the
                                  (substring newdef (length ptr-string))
                                  (extempore-parser-type-from-function-arg typedef-string))))))))
 
-(defun extmpore-parser-process-current-buffer ()
+(defun extempore-parser-process-current-buffer ()
   (interactive)
   (dolist (parse-fn (list #'extempore-parser-remove-ifdef-guards
                           #'extempore-parser-handle-c-comments
