@@ -11,49 +11,88 @@
 ;; All rights reserved.
 
 ;; Redistribution and use in source and binary forms, with or without
-;; modification, are permitted provided that the following conditions are met:
+;; modification, are permitted provided that the following conditions
+;; are met:
 
-;; 1. Redistributions of source code must retain the above copyright notice,
-;;    this list of conditions and the following disclaimer.
+;; 1. Redistributions of source code must retain the above copyright
+;;    notice, this list of conditions and the following disclaimer.
 
-;; 2. Redistributions in binary form must reproduce the above copyright notice,
-;;    this list of conditions and the following disclaimer in the documentation
-;;    and/or other materials provided with the distribution.
+;; 2. Redistributions in binary form must reproduce the above
+;;    copyright notice, this list of conditions and the following
+;;    disclaimer in the documentation and/or other materials provided
+;;    with the distribution.
 
-;; Neither the name of the authors nor other contributors may be used to endorse
-;; or promote products derived from this software without specific prior written
-;; permission.
+;; Neither the name of the authors nor other contributors may be used
+;; to endorse or promote products derived from this software without
+;; specific prior written permission.
 
-;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-;; POSSIBILITY OF SUCH DAMAGE.
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+;; "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+;; LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+;; FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+;; COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+;; INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+;; (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+;; SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+;; STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ;;; Commentary:
 
-;; A major mode for editing Extempore code. See the Extempore project
-;; page at http://github.com/digego/extempore for more details.
-
-;; History
-
-;; Adapted from: scheme.el by Bill Rozas and Dave Love
-;; Also includes some work done by Hector Levesque and Andrew Sorensen
-
-;; Installation:
-
-;; Install via package.el with
-
-;; (package-install-file "/path/to/extempore-mode.el")
-
-;; Currently, extempore.el requires Emacs 24, because it inherits from
-;; prog-mode (via lisp-mode)
+;;    A major mode for editing Extempore code. See the Extempore
+;;    project page at http://github.com/digego/extempore for more
+;;    details.
+;;
+;;  Installation
+;;
+;;    Available through MELPA:
+;;
+;;    M-x `package-install' RET `extempore-mode' RET
+;;
+;;    If you don't want to get it from MELPA, just download the file and
+;;    use `package-install-file'
+;;
+;;    (package-install-file "/path/to/extempore-mode.el")
+;;
+;;  Usage
+;;
+;;    The most important commands are
+;;
+;;      M-x `extempore-connect-or-disconnect' (C-c C-j)
+;;
+;;      Connect the current extempore-mode buffer to a running
+;;      Extempore process - this is necessary to begin sending code
+;;      for evaluation. An Extempore process may have multiple
+;;      connected buffers, and each buffer can be connected to
+;;      multiple Extempore processes. If called with a prefix arg,
+;;      disconnect current buffer.
+;;
+;;      M-x `switch-to-extempore' (C-c C-z)
+;;
+;;      Switch to the Extempore process buffer running in Emacs. If
+;;      not currently running, prompt to start one.
+;;
+;;      M-x `extempore-send-definition' (C-c C-c, C-M-x)
+;;
+;;      Send the Extempore form under point (or a whole region, if
+;;      region is active) to all Extempore processes connected to the
+;;      current buffer.
+;;
+;;      M-x `extempore-repl' (C-c C-c, C-M-x)
+;;
+;;      Create an Extempore REPL buffer.
+;;
+;;  History
+;;
+;;    Adapted from: scheme.el by Bill Rozas and Dave Love
+;;    Also includes some work done by Hector Levesque and Andrew Sorensen
+;;
+;;  Caveats
+;;
+;;    extempore-mode requires Emacs 24, because it inherits from
+;;    prog-mode (via lisp-mode)
 
 ;;; Code:
 
