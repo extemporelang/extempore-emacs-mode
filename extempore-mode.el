@@ -1055,19 +1055,17 @@ to continue it."
 (defalias 'extempore-start-repl 'extempore-repl)
 
 ;;;###autoload
-(defun extempore-run (program-args)
+(defun extempore-run (program-args run-directory)
   "Run an inferior Extempore process, input and output via buffer `*extempore*'.
 If there is a process already running in `*extempore*', switch to that buffer.
 
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
 
-  (interactive (list (read-string "Run Extempore: extempore " extempore-program-args)))
-  (unless extempore-share-directory
-    (error "Error: `extempore-share-directory' not set!\n\nNote that this var used to be called `user-extempore-directory', so you may need to update your .emacs"))
+  (interactive
+   (list (read-string "Run: extempore " extempore-program-args)
+         (ido-read-directory-name "In directory: " extempore-share-directory)))
   (if (not (comint-check-proc "*extempore*"))
-      (let* ((default-directory (file-name-as-directory
-                                 (expand-file-name extempore-share-directory)))
-             (runtime-directory (concat default-directory "runtime")))
+      (let* ((default-directory run-directory))
         (message (concat "Running extempore with: " program-args))
         (set-buffer (apply #'make-comint "extempore" "extempore" nil
                            (split-string-and-unquote program-args)))
@@ -1215,7 +1213,7 @@ See variable `extempore-buffer'."
 Since this command is run implicitly, always ask the user for the
 command to run."
   (save-window-excursion
-    (extempore-run (read-string "Start Extempore as: " (concat "extempore " extempore-program-args))))
+    (call-interactively #'extempore-run))
   (display-buffer "*extempore*" #'display-buffer-pop-up-window))
 
 ;;;;;;;;;;;
