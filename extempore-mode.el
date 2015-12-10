@@ -1066,7 +1066,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
          (ido-read-directory-name "In directory: " extempore-share-directory)))
   (if (not (comint-check-proc "*extempore*"))
       (let* ((default-directory run-directory))
-        (message (concat "Running extempore with: " program-args))
+        (message (concat "Running: extempore " program-args))
         (set-buffer (apply #'make-comint "extempore" "extempore" nil
                            (split-string-and-unquote program-args)))
         (inferior-extempore-mode))
