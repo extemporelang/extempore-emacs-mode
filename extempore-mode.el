@@ -165,7 +165,9 @@
     ("func"
      "(bind-func\\s-+\\(\\S-+\\)\\_>" 1)
     ("func" ;; bind-lib-func
-     "(bind-lib-func\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\_>" 2))
+     "(bind-lib-func\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\_>" 2)
+    ("func"
+     "(bind-macro\\s-+(\\(\\S-+\\)\\_>" 1))
   "Imenu generic expression for Extempore mode.  See `imenu-generic-expression'.")
 
 (defun extempore-mode-variables ()
@@ -420,6 +422,9 @@ To restore the old C-x prefixed versions, add something like this to your .emacs
        '("(\\(bind-func\\)\\s-+\\([[:alnum:]_-]+\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-function-name-face))
+       '("(\\(bind-macro\\)\\s-+(\\([[:alnum:]_-]+\\)"
+         (1 font-lock-keyword-face)
+         (2 font-lock-function-name-face))
        '("(\\(bind-poly\\)\\s-+\\([[:alnum:]_-]+\\)\\s-+\\([[:alnum:]_-]+\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-constant-face t)
@@ -618,6 +623,7 @@ indentation."
 (put 'lambda 'extempore-indent-function 1)
 (put 'memzone 'extempore-indent-function 1)
 (put 'bind-func 'extempore-indent-function 'defun)
+(put 'bind-macro 'extempore-indent-function 'defun)
 (put 'bind-poly 'extempore-indent-function 'defun)
 (put 'bind-type 'extempore-indent-function 'defun)
 (put 'bind-val 'extempore-indent-function 'defun)
