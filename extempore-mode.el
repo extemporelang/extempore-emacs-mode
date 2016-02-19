@@ -1069,10 +1069,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
   (if (not (comint-check-proc "*extempore*"))
       (let* ((default-directory run-directory))
         (message (concat "Running: extempore " program-args))
-        (set-buffer (apply #'make-comint "extempore"
-                           ;; on Windows, Extempore doesn't yet live on the PATH
-                           (if (equal system-type 'windows-nt) "./extempore" "extempore")
-                           nil
+        (set-buffer (apply #'make-comint "extempore" "extempore" nil
                            (split-string-and-unquote program-args)))
         (inferior-extempore-mode))
     (message "extempore is already running in *extempore* buffer."))
