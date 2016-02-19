@@ -1063,7 +1063,9 @@ If there is a process already running in `*extempore*', switch to that buffer.
 
   (interactive
    (list (read-string "Run: extempore " extempore-program-args)
-         (ido-read-directory-name "In directory: " extempore-share-directory)))
+         (if (equal system-type 'windows-nt)
+             extempore-share-directory  ;; must run in sharedir on Windows
+           (ido-read-directory-name "In directory: " extempore-share-directory))))
   (if (not (comint-check-proc "*extempore*"))
       (let* ((default-directory run-directory))
         (message (concat "Running: extempore " program-args))
