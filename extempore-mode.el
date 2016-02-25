@@ -1225,6 +1225,10 @@ command to run."
 ;; eldoc ;;
 ;;;;;;;;;;;
 
+;; this required for Emacs 25, see GH issue #243
+(unless (fboundp 'eldoc-beginning-of-sexp)
+  (defalias 'eldoc-beginning-of-sexp 'elisp--beginning-of-sexp))
+
 (defcustom extempore-eldoc-active t
   "If non-nil, attempt to display live argument lists for the
   function under point."
