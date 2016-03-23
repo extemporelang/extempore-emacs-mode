@@ -1066,16 +1066,16 @@ If there is a process already running in `*extempore*', switch to that buffer.
          (if (equal system-type 'windows-nt)
              extempore-share-directory  ;; must run in sharedir on Windows
            (read-directory-name "In directory: " extempore-share-directory))))
-  (if (not (comint-check-proc "*extempore*"))
-      (let* ((default-directory run-directory))
-        (message (concat "Running: extempore " program-args))
-        (set-buffer (apply #'make-comint "extempore"
-                           (concat (if (equal system-type 'windows-nt)
-                                       extempore-share-directory "")
-                                   "extempore") nil
-                           (split-string-and-unquote program-args)))
-        (inferior-extempore-mode))
-    (message "extempore is already running in *extempore* buffer."))
+  (unless (comint-check-proc "*extempore*")
+    (with-current-buffer (get-buffer-create "*extempore*")
+      (setq-local default-directory run-directory)
+      (message (concat "Running: extempore " program-args))
+      (apply #'make-comint "extempore"
+             (concat (if (equal system-type 'windows-nt)
+                         extempore-share-directory "")
+                     "extempore") nil
+             (split-string-and-unquote program-args))
+      (inferior-extempore-mode)))
   (setq extempore-buffer "*extempore*"))
 
 (defun extempore-stop ()
