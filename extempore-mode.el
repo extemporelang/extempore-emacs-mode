@@ -285,15 +285,15 @@ See `run-hooks'."
   :type 'boolean
   :group 'extempore)
 
-(defcustom extempore-share-directory nil
+(defcustom extempore-path nil
   "Location of the extempore directory.
 
-Used to be called `user-extempore-directory'"
+Used to be called `user-extempore-directory' and `extempore-share-directory'"
   :type 'string
   :group 'extempore)
 
-(defalias 'user-extempore-directory 'extempore-share-directory
-  "Deprecated: use extempore-share-directory instead")
+(defalias 'user-extempore-directory 'extempore-path "Deprecated: use extempore-path instead")
+(defalias 'extempore-share-directory 'extempore-path "Deprecated: use extempore-path instead")
 
 (defcustom extempore-program-args nil
   "Arguments to pass to the extempore process started by `extempore-run'."
@@ -1064,15 +1064,15 @@ If there is a process already running in `*extempore*', switch to that buffer.
   (interactive
    (list (read-string "Run: extempore " extempore-program-args)
          (if (equal system-type 'windows-nt)
-             extempore-share-directory  ;; must run in sharedir on Windows
-           (read-directory-name "In directory: " extempore-share-directory))))
+             extempore-path  ;; must run in sharedir on Windows
+           (read-directory-name "In directory: " extempore-path))))
   (unless (comint-check-proc "*extempore*")
     (with-current-buffer (get-buffer-create "*extempore*")
       (setq-local default-directory run-directory)
       (message (concat "Running: extempore " program-args))
       (apply #'make-comint "extempore"
              (concat (if (equal system-type 'windows-nt)
-                         extempore-share-directory "")
+                         extempore-path "")
                      "extempore") nil
              (split-string-and-unquote program-args))
       (inferior-extempore-mode)))
