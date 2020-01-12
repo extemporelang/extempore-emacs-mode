@@ -163,7 +163,7 @@
     ("val" ;; bind-lib-val
      "(bind-lib-val\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\_>" 2)
     ("func"
-     "(bind-func\\s-+\\(\\S-+\\)\\_>" 1)
+     "(bind-func\\s-+\\(static\\s-+\\)?\\(\\S-+\\)\\_>" 1)
     ("func" ;; bind-lib-func
      "(bind-lib-func\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)\\_>" 2))
   "Imenu generic expression for Extempore mode.  See `imenu-generic-expression'.")
