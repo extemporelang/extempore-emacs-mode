@@ -151,7 +151,7 @@
   '(("scheme"
      "(\\(define\\|macro\\|define-macro\\)\\s-+(?\\(\\S-+\\)\\_>" 2)
     ("instrument"
-     "(bind-\\(instrument\\|sampler\\)\\s-+\\(\\S-+\\)\\_>" 2)
+     "(make-instrument\\s-+\\(\\S-+\\)\\_>" 1)
     ("lib" ;; bind-lib
      "(bind-lib\\s-+\\S-+\\s-+\\(\\S-+\\)\\_>" 1)
     ("type"
