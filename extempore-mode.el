@@ -1075,7 +1075,10 @@ If there is a process already running in `*extempore*', switch to that buffer.
                          extempore-path "")
                      "extempore") nil
              (split-string-and-unquote program-args))
-      (inferior-extempore-mode)))
+      (inferior-extempore-mode)
+	  ;; so as to not annoy evil users
+	  (when (fboundp 'evil-force-normal-state)
+		(evil-force-normal-state))))
   (setq extempore-buffer "*extempore*"))
 
 (defun extempore-stop ()
