@@ -1054,6 +1054,8 @@ to continue it."
 ;; for compatibility---this is what it used to be called
 (defalias 'extempore-start-repl 'extempore-repl)
 
+(defvar extempore-run-history-list nil)
+
 ;;;###autoload
 (defun extempore-run (program-args run-directory)
   "Run an inferior Extempore process, input and output via buffer `*extempore*'.
@@ -1062,7 +1064,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
 
   (interactive
-   (list (read-string "Run: extempore " extempore-program-args)
+   (list (read-string "Run: extempore " extempore-program-args extempore-run-history-list)
          (if (equal system-type 'windows-nt)
              extempore-path  ;; must run in sharedir on Windows
            (read-directory-name "In directory: " extempore-path))))
