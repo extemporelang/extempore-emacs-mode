@@ -856,6 +856,7 @@ indentation."
 (defun extempore-make-blink-overlay (face-sym)
   (let ((overlay (make-overlay 0 0)))
     (overlay-put overlay 'face face-sym)
+    (overlay-put overlay 'priority 1000)
     overlay))
 
 (defvar extempore-blink-overlay (extempore-make-blink-overlay 'extempore-blink-face)
