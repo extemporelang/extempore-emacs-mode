@@ -1097,8 +1097,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
   (if extempore-connection-list
       (let ((transient-mark-mode nil))
         (dolist (proc extempore-connection-list)
-          (process-send-string
-           proc
+          (process-send-string proc
            (concat (buffer-substring-no-properties start end) "\r\n")))
         (extempore-blink-region extempore-blink-overlay start end))
     (error "This buffer is not connected to an Extempore process - you can connect it with `M-x extempore-connect' (C-c C-j)")))
