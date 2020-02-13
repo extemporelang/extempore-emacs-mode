@@ -1100,8 +1100,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
           (process-send-string
            proc
            (concat (buffer-substring-no-properties start end) "\r\n")))
-        (extempore-blink-region extempore-blink-overlay start end)
-        (sleep-for extempore-blink-duration))
+        (extempore-blink-region extempore-blink-overlay start end))
     (error "This buffer is not connected to an Extempore process - you can connect it with `M-x extempore-connect' (C-c C-j)")))
 
 (defun extempore-send-definition ()
