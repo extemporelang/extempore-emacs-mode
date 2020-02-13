@@ -19,13 +19,16 @@ use `package-install-file`
 
 The most important commands are
 
-    M-x extempore-connect-or-disconnect (C-c C-j)
+    M-x extempore-connect (C-c C-j)
 
 Connect the current `extempore-mode` buffer to a running Extempore
-process---this is necessary to begin sending code for evaluation. An
-Extempore process may have multiple connected buffers, and each buffer
-can be connected to multiple Extempore processes. If called with a
-prefix arg, disconnect current buffer.
+process---this is necessary to begin sending code for evaluation. If called with
+a prefix arg, prompt for a host & port number to connect to, otherwise use the
+values of `extempore-default-host` (default "localhost") and
+`extempore-default-port` (default 7099).
+
+An Extempore process may have multiple connected buffers, and each buffer can be
+connected to multiple Extempore processes.
 
     M-x switch-to-extempore (C-c C-z)
 

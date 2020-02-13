@@ -60,7 +60,7 @@
 ;;
 ;;    The most important commands are
 ;;
-;;      M-x `extempore-connect-or-disconnect' (C-c C-j)
+;;      M-x `extempore-connect' (C-c C-j)
 ;;
 ;;      Connect the current extempore-mode buffer to a running
 ;;      Extempore process - this is necessary to begin sending code
@@ -329,9 +329,9 @@ To restore the old C-x prefixed versions, add something like this to your .emacs
             (lambda ()
               (define-key extempore-mode-map (kbd \"C-x C-x\") 'extempore-send-definition)
               (define-key extempore-mode-map (kbd \"C-x C-r\") 'extempore-send-buffer-or-region)
-              (define-key extempore-mode-map (kbd \"C-x C-j\") 'extempore-connect-or-disconnect)))
+              (define-key extempore-mode-map (kbd \"C-x C-j\") 'extempore-connect)))
 "
-  (define-key keymap (kbd "C-c C-j") 'extempore-connect-or-disconnect) ;'jack in'
+  (define-key keymap (kbd "C-c C-j") 'extempore-connect) ;'jack in'
   (define-key keymap (kbd "C-M-x") 'extempore-send-definition)
   (define-key keymap (kbd "C-c C-c") 'extempore-send-definition)
   (define-key keymap (kbd "C-c M-e") 'extempore-send-definition-and-go)
@@ -743,15 +743,21 @@ indentation."
 (defvar extempore-connect-host-history-list nil)
 (defvar extempore-connect-port-history-list nil)
 
-(defun extempore-connect (host port)
-  "Connect to an Extempore process running on HOST and PORT."
+(defun extempore-connect (prefix host port)
+  "Connect to an Extempore process running on HOST and PORT.
+
+When called with prefix arg, prompt for HOST and PORT, otherwise
+just use `extempore-default-host':`extempore-default-port'"
   (interactive
    ;; get args interactively
-   (list (ido-completing-read
-          "Hostname: " (cl-remove-duplicates (cons extempore-default-host extempore-connect-host-history-list) :test #'string=) nil nil nil 'extempore-connect-host-history-list extempore-default-host)
-         (string-to-number
-          (ido-completing-read
-           "Port: " (cl-remove-duplicates (append '("7099" "7098") extempore-connect-port-history-list) :test #'string=) nil nil nil 'extempore-connect-port-history-list (number-to-string extempore-default-port)))))
+   (if current-prefix-arg
+	   (list :prefix
+			 (ido-completing-read
+			  "Hostname: " (cl-remove-duplicates (cons extempore-default-host extempore-connect-host-history-list) :test #'string=) nil nil nil 'extempore-connect-host-history-list extempore-default-host)
+			 (string-to-number
+			  (ido-completing-read
+			   "Port: " (cl-remove-duplicates (append '("7099" "7098") extempore-connect-port-history-list) :test #'string=) nil nil nil 'extempore-connect-port-history-list (number-to-string extempore-default-port))))
+	 (list nil extempore-default-host extempore-default-port)))
   (extempore-sync-connections)
   (extempore-new-connection host port))
 
@@ -765,7 +771,7 @@ indentation."
   (interactive)
   (if (local-variable-p 'extempore-multiple-connection-list)
       (dolist (host-port extempore-multiple-connection-list)
-        (extempore-connect (car host-port) (cdr host-port)))))
+        (extempore-connect :prefix (car host-port) (cdr host-port)))))
 
 (defun extempore-connect-port-range (host start count step)
   (interactive
@@ -781,13 +787,7 @@ indentation."
           (ido-completing-read
            "Port step: " nil nil nil "1"))))
   (dotimes (port count)
-    (extempore-connect host (+ start (* step port)))))
-
-(defun extempore-connect-or-disconnect (prefix)
-  (interactive "P")
-  (if prefix
-      (extempore-disconnect-all)
-    (call-interactively #'extempore-connect)))
+    (extempore-connect :prefix host (+ start (* step port)))))
 
 ;;; SLIP escape codes
 ;; END       ?\300    /* indicates end of packet */
