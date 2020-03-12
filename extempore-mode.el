@@ -1066,9 +1066,9 @@ If there is a process already running in `*extempore*', switch to that buffer.
 
   (interactive
    (list (read-string "Run: extempore " extempore-program-args extempore-run-history-list)
-         (if (equal system-type 'windows-nt)
-             extempore-path  ;; must run in sharedir on Windows
-           (read-directory-name "In directory: " extempore-path))))
+		 (if current-prefix-arg
+			 (read-directory-name "In directory: ")
+		   extempore-path)))
   (unless (comint-check-proc "*extempore*")
     (with-current-buffer (get-buffer-create "*extempore*")
       (setq-local default-directory run-directory)
@@ -1128,14 +1128,14 @@ If there is a process already running in `*extempore*', switch to that buffer.
   (interactive)
   (extempore-send-region (save-excursion (backward-sexp) (point)) (point)))
 
-(defun switch-to-extempore (keep-point-p)
+(defun switch-to-extempore ()
   "Switch to the extempore process buffer and (unless prefix arg) position cursor at end of buffer."
-  (interactive "P")
+  (interactive)
   (if (and extempore-buffer (comint-check-proc extempore-buffer))
-      (progn (pop-to-buffer extempore-buffer)
-             (when (not keep-point-p)
-               (push-mark)
-               (goto-char (point-max))))
+      (progn
+		(pop-to-buffer extempore-buffer)
+		(push-mark)
+		(goto-char (point-max)))
     (extempore-interactively-start-process)))
 
 (defun extempore-send-definition-and-go ()
@@ -1143,7 +1143,7 @@ If there is a process already running in `*extempore*', switch to that buffer.
 Then switch to the process buffer."
   (interactive)
   (extempore-send-definition)
-  (switch-to-extempore t))
+  (switch-to-extempore))
 
 (defvar extempore-prev-l/c-dir/file nil
   "Caches the last (directory . file) pair.
