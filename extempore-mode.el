@@ -1076,8 +1076,8 @@ If there is a process already running in `*extempore*', switch to that buffer.
 
   (interactive
    (list (read-string "Run: extempore " extempore-program-args extempore-run-history-list)
-		 (if current-prefix-arg
-			 (read-directory-name "In directory: ")
+		 (if (or current-prefix-arg (not extempore-path))
+			 (read-directory-name "Directory: ")
 		   extempore-path)))
   (unless (comint-check-proc "*extempore*")
     (with-current-buffer (get-buffer-create "*extempore*")
