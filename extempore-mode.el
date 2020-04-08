@@ -60,7 +60,7 @@
 ;;  Configuration
 ;;
 ;;    (optional) if you don't want to have to answer the "directory" prompt
-;;    every time you call `run-extempore', you can set the `extempore-path'
+;;    every time you call `extempore-run', you can set the `extempore-path'
 ;;    variable (either in your init file or through the customisation interface)
 ;;
 ;;    (setq extempore-path "/path/to/extempore/")
