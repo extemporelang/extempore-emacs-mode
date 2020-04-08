@@ -36,8 +36,8 @@ running, prompt to start one.
 
     M-x extempore-send-definition (C-c C-c, C-M-x)
 
-Send the Extempore form under point (or a whole region, if region is active) to
-all Extempore processes connected to the current buffer.
+Send the Extempore form under point (or current region, if active) to all
+Extempore processes connected to the current buffer.
 
 ## Caveats
 
