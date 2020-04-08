@@ -14,6 +14,19 @@ If you don't want to get it from MELPA, just download the file and use
 
     (package-install-file "/path/to/extempore-mode.el")
 
+## Configuration
+
+There are several config variables to tweakl, but in most cases the defaults
+will be ok if you're just starting out. If you want to see them, hit `M-x
+customize` and look in the `extempore` group.
+
+The only thing you might want to set out-of-the-box is `extempore-path`, so that
+you don't have to answer the "directory" prompt every time you call
+`switch-to-extempore`. You can do it through `customize` or set it directly in
+your init file like so:
+
+    (setq extempore-path "/path/to/extempore/")
+
 ## Usage
 
 The most important commands are
