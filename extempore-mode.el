@@ -1317,8 +1317,8 @@ command to run."
 (add-hook 'extempore-mode-hook
           '(lambda ()
              (turn-on-eldoc-mode)
-             (setq eldoc-documentation-function
-                   'extempore-eldoc-documentation-function)))
+			 (setq-local eldoc-documentation-function
+						 'extempore-eldoc-documentation-function)))
 
 ;; misc bits and pieces
 (defun xpb1 (name duration)
