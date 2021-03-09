@@ -1121,17 +1121,28 @@ If there is a process already running in `*extempore*', switch to that buffer.
      (beginning-of-defun)
      (extempore-send-region (point) end))))
 
-(defun extempore-send-buffer-or-region ()
-  "Send the current region (or buffer, if no region is active) to the inferior Extempore process"
+(defun extempore-send-buffer ()
+  "Send the current buffer to the inferior Extempore process
+
+This function sends the top-level forms one-at a time to avoid
+overflowing the REPL input buffer."
   (interactive)
-  (let ((extempore-blink-duration 0.01)
-        (beg (if (region-active-p) (region-beginning) (point-min)))
-        (end (if (region-active-p) (region-end) (point-max))))
+  (let ((extempore-blink-duration 0.01))
     (save-excursion
-      (goto-char beg)
-      (while (re-search-forward "^(" end t)
+      (goto-char (point-min))
+      (while (re-search-forward "^(" (point-max) t)
         (extempore-send-definition)
         (redisplay)))))
+
+(defun extempore-send-dwim ()
+  "Send the current definition (or region, if active) to the inferior Extempore process"
+  (interactive)
+  (if (region-active-p)
+      (extempore-send-region (region-beginning) (region-end))
+    (extempore-send-definition)))
+
+(defalias 'extempore-send-buffer-or-region #'extempore-send-dwim
+  "compatibility alias---behaviour is not identical, but might do the job")
 
 (defun extempore-send-last-sexp ()
   "Send the previous sexp to the inferior Extempore process."
