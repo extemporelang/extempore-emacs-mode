@@ -48,11 +48,12 @@ connected to multiple Extempore processes.
 Switch to the Extempore process buffer running in Emacs. If not currently
 running, prompt to start one.
 
-<kbd>M-x</kbd> `extempore-send-definition` (<kbd>C-c</kbd> <kbd>C-c</kbd> or
-<kbd>C-M-x</kbd>)
+The most useful command for day-to-day use is:
 
-Send the Extempore form under point (or current region, if active) to all
-Extempore processes connected to the current buffer.
+- <kbd>M-x</kbd> `extempore-send-dwim` (<kbd>C-M-x</kbd>)
+
+which sends the Extempore top-level definition under point (or current region,
+if active) to the Extempore process connected to the current buffer.
 
 ## Caveats
 

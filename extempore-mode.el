@@ -342,7 +342,7 @@ To restore the old C-x prefixed versions, add something like this to your .emacs
               (define-key extempore-mode-map (kbd \"C-x C-j\") 'extempore-connect)))
 "
   (define-key keymap (kbd "C-c C-j") 'extempore-connect) ;'jack in'
-  (define-key keymap (kbd "C-M-x") 'extempore-send-definition)
+  (define-key keymap (kbd "C-M-x") 'extempore-send-dwim)
   (define-key keymap (kbd "C-c C-c") 'extempore-send-definition)
   (define-key keymap (kbd "C-c M-e") 'extempore-send-definition-and-go)
   (define-key keymap (kbd "C-x C-e") 'extempore-send-last-sexp)
