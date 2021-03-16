@@ -1,7 +1,7 @@
 # Extempore Emacs Mode
 
 A major mode for editing Extempore code. See the Extempore project page at
-http://github.com/digego/extempore for more details.
+<http://github.com/digego/extempore> for more details.
 
 ## Installation
 
