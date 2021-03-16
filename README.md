@@ -7,7 +7,8 @@ http://github.com/digego/extempore for more details.
 
 Available through MELPA:
 
-    M-x package-install RET extempore-mode RET
+- <kbd>M-x</kbd> `package-install` <kbd>RET</kbd> `extempore-mode`
+  <kbd>RET</kbd>
 
 If you don't want to get it from MELPA, just download the file and use
 `package-install-file` (or even just `load`).
@@ -17,8 +18,8 @@ If you don't want to get it from MELPA, just download the file and use
 ## Configuration
 
 There are several config variables to tweakl, but in most cases the defaults
-will be ok if you're just starting out. If you want to see them, hit `M-x
-customize` and look in the `extempore` group.
+will be ok if you're just starting out. If you want to see them, hit
+<kbd>M-x</kbd> `customize` and look in the `extempore` group.
 
 The only thing you might want to set out-of-the-box is `extempore-path`, so that
 you don't have to answer the "directory" prompt every time you call
@@ -31,7 +32,7 @@ your init file like so:
 
 The most important commands are
 
-    M-x extempore-connect (C-c C-j)
+- <kbd>M-x</kbd> `extempore-connect` (<kbd>C-c</kbd> <kbd>C-j</kbd>)
 
 Connect the current `extempore-mode` buffer to a running Extempore
 process---this is necessary to begin sending code for evaluation. If called with
@@ -42,12 +43,13 @@ values of `extempore-default-host` (default `"localhost"`) and
 An Extempore process may have multiple connected buffers, and each buffer can be
 connected to multiple Extempore processes.
 
-    M-x switch-to-extempore (C-c C-z)
+- <kbd>M-x</kbd> `switch-to-extempore` (<kbd>C-c</kbd> <kbd>C-z</kbd>)
 
 Switch to the Extempore process buffer running in Emacs. If not currently
 running, prompt to start one.
 
-    M-x extempore-send-definition (C-c C-c, C-M-x)
+<kbd>M-x</kbd> `extempore-send-definition` (<kbd>C-c</kbd> <kbd>C-c</kbd> or
+<kbd>C-M-x</kbd>)
 
 Send the Extempore form under point (or current region, if active) to all
 Extempore processes connected to the current buffer.
