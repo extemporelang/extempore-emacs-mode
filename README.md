@@ -32,7 +32,8 @@ your init file like so:
 
 The most important commands are
 
-- <kbd>M-x</kbd> `extempore-connect` (<kbd>C-c</kbd> <kbd>C-j</kbd>)
+- <kbd>M-x</kbd> `extempore-connect` (default keybinding <kbd>C-c</kbd>
+  <kbd>C-j</kbd>)
 
 Connect the current `extempore-mode` buffer to a running Extempore
 process---this is necessary to begin sending code for evaluation. If called with
@@ -43,14 +44,15 @@ values of `extempore-default-host` (default `"localhost"`) and
 An Extempore process may have multiple connected buffers, and each buffer can be
 connected to multiple Extempore processes.
 
-- <kbd>M-x</kbd> `switch-to-extempore` (<kbd>C-c</kbd> <kbd>C-z</kbd>)
+- <kbd>M-x</kbd> `switch-to-extempore` (default keybinding <kbd>C-c</kbd>
+  <kbd>C-z</kbd>)
 
 Switch to the Extempore process buffer running in Emacs. If not currently
 running, prompt to start one.
 
 The most useful command for day-to-day use is:
 
-- <kbd>M-x</kbd> `extempore-send-dwim` (<kbd>C-M-x</kbd>)
+- <kbd>M-x</kbd> `extempore-send-dwim` (default keybinding <kbd>C-M-x</kbd>)
 
 which sends the Extempore top-level definition under point (or current region,
 if active) to the Extempore process connected to the current buffer.
