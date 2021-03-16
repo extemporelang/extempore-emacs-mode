@@ -17,9 +17,9 @@ If you don't want to get it from MELPA, just download the file and use
 
 ## Configuration
 
-There are several config variables to tweakl, but in most cases the defaults
-will be ok if you're just starting out. If you want to see them, hit
-<kbd>M-x</kbd> `customize` and look in the `extempore` group.
+There are several config variables to tweak, but in most cases the defaults will
+be ok if you're just starting out. If you want to see them, hit <kbd>M-x</kbd>
+`customize` and look in the `extempore` group.
 
 The only thing you might want to set out-of-the-box is `extempore-path`, so that
 you don't have to answer the "directory" prompt every time you call
