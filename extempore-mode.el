@@ -1040,6 +1040,12 @@ to continue it."
 
 (defvar extempore-run-history-list nil)
 
+(defun extempore-find-executable ()
+  "find the `extempore' executable"
+  (or (executable-find "extempore")
+      (executable-find (concat extempore-path "extempore"))
+      (error "Couldn't find extempore executable - have you set your `extempore-path' correctly?")))
+
 ;;;###autoload
 (defun extempore-run (program-args run-directory)
   "Run an inferior Extempore process, input and output via buffer `*extempore*'.
@@ -1056,10 +1062,10 @@ If there is a process already running in `*extempore*', switch to that buffer.
     (with-current-buffer (get-buffer-create "*extempore*")
       (setq-local default-directory run-directory)
       (message (concat "Running: extempore " program-args))
-      (apply #'make-comint "extempore"
-             (concat (if (equal system-type 'windows-nt)
-                         extempore-path "")
-                     "extempore") nil
+      (apply #'make-comint
+             "extempore"
+             (extempore-find-executable)
+             nil ;; no startfile
              (split-string-and-unquote program-args))
       (inferior-extempore-mode)
 	  ;; so as to not annoy evil users
