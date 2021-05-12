@@ -1122,6 +1122,7 @@ overflowing the REPL input buffer."
   (interactive)
   (extempore-send-region (save-excursion (backward-sexp) (point)) (point)))
 
+;;;###autoload
 (defun switch-to-extempore ()
   "Switch to the extempore process buffer and (unless prefix arg) position cursor at end of buffer."
   (interactive)
