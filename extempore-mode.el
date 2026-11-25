@@ -595,21 +595,34 @@ indentation."
 ;; like defun if the first form is placed on the next line, otherwise
 ;; it is indented like any other form (i.e. forms line up under first).
 
+;; tree-sitter-extempore's queries/indents.scm names the same forms, so that
+;; Helix and Emacs indent alike: keep the two in step.
+
 (put 'begin 'extempore-indent-function 0)
+(put 'beginz 'extempore-indent-function 0)
 (put 'case 'extempore-indent-function 1)
 (put 'delay 'extempore-indent-function 0)
 (put 'dotimes 'extempore-indent-function 1)
 (put 'doloop 'extempore-indent-function 1)
 (put 'while 'extempore-indent-function 1)
 (put 'lambda 'extempore-indent-function 1)
+(put 'lambdaz 'extempore-indent-function 1)
+(put 'lambdas 'extempore-indent-function 1)
+(put 'lambdah 'extempore-indent-function 1)
 (put 'memzone 'extempore-indent-function 1)
 (put 'bind-func 'extempore-indent-function 'defun)
 (put 'bind-macro 'extempore-indent-function 'defun)
 (put 'bind-poly 'extempore-indent-function 'defun)
 (put 'bind-type 'extempore-indent-function 'defun)
+(put 'bind-data 'extempore-indent-function 'defun)
+(put 'bind-alias 'extempore-indent-function 'defun)
 (put 'bind-val 'extempore-indent-function 'defun)
+(put 'bind-ext-val 'extempore-indent-function 'defun)
 (put 'bind-lib 'extempore-indent-function 'defun)
+(put 'bind-lib-val 'extempore-indent-function 'defun)
 (put 'bind-dylib 'extempore-indent-function 'defun)
+(put 'bind-instrument 'extempore-indent-function 'defun)
+(put 'bind-sampler 'extempore-indent-function 'defun)
 (put 'let 'extempore-indent-function 'extempore-let-indent)
 (put 'letz 'extempore-indent-function 'extempore-let-indent)
 (put 'let* 'extempore-indent-function 'extempore-let-indent)
