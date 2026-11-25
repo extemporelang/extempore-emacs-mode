@@ -4,7 +4,7 @@
 ;; Version: 1.0
 ;; Keywords: lisp, extempore
 ;; URL: http://github.com/extemporelang/extempore-emacs-mode
-;; Package-Requires:((emacs "24.4"))
+;; Package-Requires: ((emacs "27.1"))
 
 ;; Copyright (c) 2011-2015, Andrew Sorensen
 
@@ -163,7 +163,8 @@
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
   (set (make-local-variable 'adaptive-fill-mode) nil)
-  (set (make-local-variable 'indent-line-function) 'lisp-indent-line)
+  (set (make-local-variable 'indent-line-function) 'extempore-indent-line)
+  (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'outline-regexp) ";;; \\|(....")
   (set (make-local-variable 'comment-start) ";")
@@ -223,7 +224,8 @@ by default.
 To send the current definition to a running Extempore process, use
 \\[extempore-send-definition].
 "
-  (extempore-mode-variables))
+  (extempore-mode-variables)
+  (add-hook 'before-save-hook #'extempore--format-before-save nil t))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.xtm$" . extempore-mode))
@@ -232,6 +234,38 @@ To send the current definition to a running Extempore process, use
   "Editing Extempore code."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'lisp)
+
+(defcustom extempore-format-on-save nil
+  "Non-nil to format the buffer with `extempore fmt' before saving it."
+  :type 'boolean
+  :group 'extempore)
+
+(defun extempore-format-buffer ()
+  "Format the buffer with `extempore fmt', which changes only whitespace.
+It indents as this mode does, so this tidies what's been typed or pasted."
+  (interactive)
+  (let ((output (generate-new-buffer " *extempore-fmt*"))
+        (errors (make-temp-file "extempore-fmt"))
+        (coding-system-for-read 'utf-8)
+        (coding-system-for-write 'utf-8))
+    (unwind-protect
+        (if (zerop (call-process-region (point-min) (point-max) (extempore-find-executable)
+                                        nil (list output errors) nil "fmt"))
+            (unless (zerop (compare-buffer-substrings nil nil nil output nil nil))
+              ;; obsolete in Emacs 31, whose replacement takes other arguments
+              ;; in earlier versions; it keeps point and markers where they were
+              (with-suppressed-warnings ((obsolete replace-buffer-contents))
+                (replace-buffer-contents output)))
+          (message "extempore fmt: %s"
+                   (with-temp-buffer
+                     (insert-file-contents errors)
+                     (replace-regexp-in-string "\n+\\'" "" (buffer-string)))))
+      (kill-buffer output)
+      (delete-file errors))))
+
+(defun extempore--format-before-save ()
+  (when extempore-format-on-save
+    (extempore-format-buffer)))
 
 (defcustom extempore-mode-hook nil
   "Normal hook run when entering `extempore-mode'.
@@ -525,6 +559,82 @@ To restore the old C-x prefixed versions, add something like this to your .emacs
 
 (defvar calculate-lisp-indent-last-sexp)
 
+;; `extempore fmt' (Formatter.cpp in the Extempore repo) is the reference for
+;; this indentation, and tree-sitter-extempore's indents.scm follows it too.
+
+(defun extempore-indent-line ()
+  "Indent the current line as Lisp code, comment lines included.
+`lisp-indent-line' puts a line which starts with one semicolon at
+`comment-column', and leaves one which starts with three alone."
+  (if (save-excursion (beginning-of-line) (looking-at "[ \t]*;"))
+      (let ((indent (save-excursion (beginning-of-line) (calculate-lisp-indent))))
+        (indent-line-to (or (if (consp indent) (car indent) indent) 0)))
+    (lisp-indent-line)))
+
+(defun extempore--data-list-p (state)
+  "Non-nil if the innermost list in STATE aligns with its first element.
+That is a list whose head isn't a symbol (a literal, a list or a quoted form), a
+vector, a quoted list, or a list inside a quoted one which isn't unquoted."
+  (or (save-excursion
+        (goto-char (1+ (elt state 1)))
+        (skip-chars-forward " \t")
+        (looking-at "[-+]?\\.?[0-9]\\|[\"('`]\\|,@?(\\|#[(\\\\]\\|#[tf]\\_>"))
+      (catch 'data
+        (dolist (open (reverse (elt state 9)))
+          (pcase (char-before open)
+            ((or ?' ?#) (throw 'data t))
+            ((or ?` ?, ?@) (throw 'data nil))))
+        nil)))
+
+(defun extempore--specform-indent (count state indent-point _normal-indent)
+  "The indentation inside a form which distinguishes COUNT arguments from its body.
+The body indents two columns from the form's parenthesis, and a distinguished
+argument on a line of its own four. When more than COUNT arguments share the
+head's line, the body aligns with the first of the rest (where
+`lisp-indent-specform' aligns it with the first argument)."
+  (save-excursion
+    (let ((open (elt state 1))
+          (before 0)
+          (on-head-line 0)
+          column head-line)
+      (goto-char (1+ open))
+      (forward-sexp 1)
+      (setq head-line (line-number-at-pos))
+      (condition-case nil
+          (while (progn (forward-comment (buffer-size)) (< (point) indent-point))
+            (let ((start (point)))
+              ;; , and ,@ are symbol constituents here (for xtlang's types),
+              ;; so step over an unquote's mark to read it as one sexp
+              (when (looking-at ",@?[([]")
+                (goto-char (match-end 0))
+                (backward-char 1))
+              (forward-sexp 1)
+              (setq before (1+ before))
+              (when (= (line-number-at-pos start) head-line)
+                (setq on-head-line (1+ on-head-line))
+                (when (= on-head-line (1+ count))
+                  (setq column (save-excursion (goto-char start) (current-column)))))))
+        (error nil))
+      (goto-char open)
+      (cond (column column)
+            ((and (< before count)
+                  (save-excursion
+                    (goto-char indent-point)
+                    (skip-chars-forward " \t")
+                    (not (looking-at "[);]"))))
+             (+ (current-column) 4))
+            (t (+ (current-column) 2))))))
+
+(defun extempore--first-element-column (state indent-point)
+  "The column of the first element of the innermost list in STATE.
+One past its parenthesis when that element starts on INDENT-POINT's line."
+  (save-excursion
+    (goto-char (1+ (elt state 1)))
+    (forward-comment (buffer-size))
+    (if (>= (point) indent-point)
+        (progn (goto-char (elt state 1)) (1+ (current-column)))
+      (current-column))))
+
 ;; FIXME this duplicates almost all of lisp-indent-function.
 ;; Extract common code to a subroutine.
 (defun extempore-indent-function (indent-point state)
@@ -537,6 +647,8 @@ i) it checks for a non-nil value of the property `extempore-indent-function'
 ii) if that property specifies a function, it is called with three
 arguments (not two), the third argument being the default (i.e., current)
 indentation."
+  (if (extempore--data-list-p state)
+      (extempore--first-element-column state indent-point)
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
@@ -563,14 +675,13 @@ indentation."
 			 (get (intern-soft function) 'extempore-indent-hook)))
 	(cond ((or (eq method 'defun)
 		   (and (null method)
-			(> (length function) 3)
-			(string-match "\\`def" function)))
+			(string-match "\\`define\\(?:-\\|c\\|\\'\\)" function)))
 	       (lisp-indent-defform state indent-point))
 	      ((integerp method)
-	       (lisp-indent-specform method state
-				     indent-point normal-indent))
+	       (extempore--specform-indent method state
+					   indent-point normal-indent))
 	      (method
-               (funcall method state indent-point normal-indent)))))))
+               (funcall method state indent-point normal-indent))))))))
 
 
 ;;; 'let' is different in Scheme/xtlang
@@ -588,19 +699,22 @@ indentation."
 (defun extempore-let-indent (state indent-point normal-indent)
   (skip-chars-forward " \t")
   (if (looking-at "[-a-zA-Z0-9+*/?!@$%^&_:~]")
-      (lisp-indent-specform 2 state indent-point normal-indent)
-    (lisp-indent-specform 1 state indent-point normal-indent)))
+      (extempore--specform-indent 2 state indent-point normal-indent)
+    (extempore--specform-indent 1 state indent-point normal-indent)))
 
 ;; (put 'begin 'extempore-indent-function 0), say, causes begin to be indented
 ;; like defun if the first form is placed on the next line, otherwise
 ;; it is indented like any other form (i.e. forms line up under first).
 
-;; tree-sitter-extempore's queries/indents.scm names the same forms, so that
-;; Helix and Emacs indent alike: keep the two in step.
+;; `extempore fmt' and tree-sitter-extempore's queries/indents.scm name the
+;; same forms, so that every editor indents alike: keep the three in step.
 
 (put 'begin 'extempore-indent-function 0)
 (put 'beginz 'extempore-indent-function 0)
 (put 'case 'extempore-indent-function 1)
+(put 'when 'extempore-indent-function 1)
+(put 'unless 'extempore-indent-function 1)
+(put 'do 'extempore-indent-function 2)
 (put 'delay 'extempore-indent-function 0)
 (put 'dotimes 'extempore-indent-function 1)
 (put 'doloop 'extempore-indent-function 1)
