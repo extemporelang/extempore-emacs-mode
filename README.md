@@ -1,66 +1,70 @@
-# Extempore Emacs Mode
+# Extempore Emacs mode
 
-A major mode for editing Extempore code. See the Extempore project page at
-<http://github.com/digego/extempore> for more details.
+A major mode for editing [Extempore](https://extemporelang.github.io) code. It
+needs Emacs 29.1 or later.
 
 ## Installation
 
-Available through MELPA:
+From MELPA: <kbd>M-x</kbd> `package-install` <kbd>RET</kbd> `extempore-mode`
+<kbd>RET</kbd>. Or download `extempore-mode.el` and use `package-install-file`.
 
-- <kbd>M-x</kbd> `package-install` <kbd>RET</kbd> `extempore-mode`
-  <kbd>RET</kbd>
+The `extempore` binary should be on your `exec-path`, or set
+`extempore-program` to its path.
 
-If you don't want to get it from MELPA, just download the file and use
-`package-install-file` (or even just `load`).
+## Evaluating code
 
-    (package-install-file "/path/to/extempore-mode.el")
+By default (`extempore-transport` is `nrepl`) the mode starts
+[Eglot](https://www.gnu.org/software/emacs/manual/html_node/eglot/) with
+Extempore's language server, `extempore lsp`. That connects to a running
+Extempore's [nREPL server](https://extemporelang.github.io/guides/nrepl/),
+which it finds as `extempore send` does: `$EXTEMPORE_NREPL_PORT`, then a
+`.nrepl-port` file in the file's directory or above it, then port 7888. Set
+`extempore-nrepl-port` (and `extempore-nrepl-host`) to say otherwise, and
+`extempore-nrepl-process` to evaluate in another Scheme process, such as
+`"utility"`.
 
-## Configuration
+| command                            | key                         |                                                  |
+| ---------------------------------- | --------------------------- | ------------------------------------------------ |
+| `extempore-send-dwim`              | <kbd>C-M-x</kbd>            | the region, or the top-level form at point       |
+| `extempore-send-definition`        | <kbd>C-c C-c</kbd>          | the top-level form at point                      |
+| `extempore-send-last-sexp`         | <kbd>C-x C-e</kbd>          | the expression before point                      |
+| `extempore-send-region`            | <kbd>C-c C-r</kbd>          | the region                                       |
+| `extempore-send-buffer`            | <kbd>C-c C-k</kbd>          | the buffer, as it stands                         |
+| `extempore-interrupt`              | <kbd>C-c C-b</kbd>          | stop the evaluation which is running             |
+| `switch-to-extempore`              | <kbd>C-c C-z</kbd>          | go to the `*extempore*` buffer, or start Extempore there |
+| `extempore-repl`                   | <kbd>C-c C-e</kbd>          | a REPL on the running Extempore (`extempore repl`) |
+| `extempore-format-buffer`          |                             | format with `extempore fmt`                      |
 
-There are several config variables to tweak, but in most cases the defaults will
-be ok if you're just starting out. If you want to see them, hit <kbd>M-x</kbd>
-`customize` and look in the `extempore` group.
+Evaluation doesn't block Emacs. Each result shows in the echo area and at the
+end of its form until you next edit the buffer (`extempore-show-results-inline`
+turns that off). Errors are also marked as diagnostics, and what the code
+prints goes to the `*extempore output*` buffer. Eglot adds completion, eldoc
+from the server's hover, and <kbd>M-x</kbd> `eglot-format`.
 
-The only thing you might want to set out-of-the-box is `extempore-path`, so that
-you don't have to answer the "directory" prompt every time you call
-`switch-to-extempore`. You can do it through `customize` or set it directly in
-your init file like so:
+`extempore-run` starts Extempore in the `*extempore*` buffer, in
+`extempore-path` with `extempore-program-args` (it asks for whichever isn't
+set). Set `extempore-format-on-save` to format each file as it's saved.
 
-    (setq extempore-path "/path/to/extempore/")
+## The legacy transport
 
-## Usage
+Extempore releases before the nREPL server only accept code over a socket on
+port 7099. Set `extempore-transport` to `legacy`, then connect a buffer with
+<kbd>C-c C-j</kbd> (`extempore-connect`; with a prefix argument it asks for
+the host and port). A buffer can be connected to several Extempores at once,
+and sends each evaluation to all of them: `extempore-connect-multiple` connects
+to each of `extempore-multiple-connection-list`, such as
+`(("localhost" . 7099) ("192.168.1.20" . 7099))`. `extempore-disconnect`
+closes them.
 
-The most important commands are
+## Tests
 
-- <kbd>M-x</kbd> `extempore-connect` (default keybinding <kbd>C-c</kbd>
-  <kbd>C-j</kbd>)
+```sh
+emacs -Q --batch -L . -l test/extempore-mode-test.el -f ert-run-tests-batch-and-exit
+```
 
-Connect the current `extempore-mode` buffer to a running Extempore
-process---this is necessary to begin sending code for evaluation. If called with
-a prefix arg, prompt for a host & port number to connect to, otherwise use the
-values of `extempore-default-host` (default `"localhost"`) and
-`extempore-default-port` (default `7099`).
-
-An Extempore process may have multiple connected buffers, and each buffer can be
-connected to multiple Extempore processes.
-
-- <kbd>M-x</kbd> `switch-to-extempore` (default keybinding <kbd>C-c</kbd>
-  <kbd>C-z</kbd>)
-
-Switch to the Extempore process buffer running in Emacs. If not currently
-running, prompt to start one.
-
-The most useful command for day-to-day use is:
-
-- <kbd>M-x</kbd> `extempore-send-dwim` (default keybinding <kbd>C-M-x</kbd>)
-
-which sends the Extempore top-level definition under point (or current region,
-if active) to the Extempore process connected to the current buffer.
-
-## Caveats
-
-`extempore-mode` requires Emacs 24, because it inherits from `prog-mode` (via
-`lisp-mode`)
+The tests which evaluate need `EXTEMPORE_TEST_PROGRAM` (an `extempore` binary)
+and `EXTEMPORE_TEST_PORT` (the nREPL port of a running Extempore), and are
+skipped without them.
 
 ## Licence
 

@@ -1,0 +1,105 @@
+;;; extempore-mode-test.el --- Tests for extempore-mode  -*- lexical-binding: t -*-
+
+;;; Commentary:
+
+;; emacs -Q --batch -L . -l test/extempore-mode-test.el -f ert-run-tests-batch-and-exit
+;;
+;; The tests which evaluate need an Extempore: EXTEMPORE_TEST_PROGRAM names an
+;; extempore binary with `extempore lsp', and EXTEMPORE_TEST_PORT the port of a
+;; running Extempore's nREPL server.  Without them they are skipped.
+
+;;; Code:
+
+(require 'ert)
+(require 'extempore-mode)
+
+(defvar extempore-test-program (getenv "EXTEMPORE_TEST_PROGRAM"))
+(defvar extempore-test-port
+  (and (getenv "EXTEMPORE_TEST_PORT") (string-to-number (getenv "EXTEMPORE_TEST_PORT"))))
+
+(ert-deftest extempore-xtm-files-open-in-extempore-mode ()
+  (should (eq (assoc-default "song.xtm" auto-mode-alist #'string-match) 'extempore-mode)))
+
+(ert-deftest extempore-summary-of-a-result ()
+  (should (equal (extempore--summary '(:values ["1" "2"] :out "")) "=> 1  => 2"))
+  (should (equal (extempore--summary '(:values [] :out "hi\nthere\n")) "hi"))
+  (should (equal (extempore--summary '(:values [] :out "")) "evaluated"))
+  (should (equal (extempore--summary '(:values [] :out "" :interrupted t)) "interrupted"))
+  (should (equal (extempore--summary '(:values [] :out "" :error (:message "bad\nworse")))
+                 "bad")))
+
+(ert-deftest extempore-definition-bounds ()
+  (with-temp-buffer
+    (insert "(define a 1)\n\n(define (f x)\n  (* x 2))  \n")
+    (let ((extempore-transport 'legacy))
+      (extempore-mode))
+    (goto-char (point-min))
+    (search-forward "* x")
+    (pcase-let ((`(,start . ,end) (extempore--definition-bounds)))
+      (should (equal (buffer-substring start end) "(define (f x)\n  (* x 2))")))
+    (goto-char (point-max))  ; after the last form
+    (pcase-let ((`(,start . ,end) (extempore--definition-bounds)))
+      (should (equal (buffer-substring start end) "(define (f x)\n  (* x 2))")))))
+
+(defun extempore-test--with-server (text body)
+  "Visit TEXT in an `extempore-mode' buffer with Eglot connected, and run BODY."
+  (let* ((dir (make-temp-file "extempore-test" t))
+         (file (expand-file-name "song.xtm" dir))
+         (extempore-program extempore-test-program)
+         (extempore-nrepl-port extempore-test-port)
+         (eglot-sync-connect t))
+    (with-temp-file file (insert text))
+    (let ((buffer (find-file-noselect file)))
+      (unwind-protect
+          (with-current-buffer buffer
+            (apply #'eglot (eglot--guess-contact))
+            (funcall body))
+        (with-current-buffer buffer
+          (when (eglot-current-server)
+            (eglot-shutdown (eglot-current-server))))
+        (kill-buffer buffer)
+        (delete-directory dir t)))))
+
+(defun extempore-test--next-result ()
+  "Wait for the next result shown in this buffer, and give its text."
+  (extempore--clear-results)
+  (with-timeout (60 (ert-fail "no result"))
+    (while (null extempore--results)
+      (accept-process-output nil 0.05)))
+  (substring-no-properties (overlay-get (car extempore--results) 'after-string) 1))
+
+(ert-deftest extempore-eval-through-the-language-server ()
+  (skip-unless (and extempore-test-program extempore-test-port))
+  (extempore-test--with-server
+   "(define answer 40)\n\n(+ answer\n   2)\n\n(car 5)\n"
+   (lambda ()
+     (goto-char (point-min))
+     (extempore-send-definition)
+     (should (equal (extempore-test--next-result) "=> 40"))
+     (search-forward "answer\n")
+     (extempore-send-definition)
+     (should (equal (extempore-test--next-result) "=> 42"))
+     ;; an edit since the last change was sent is evaluated as it stands
+     (goto-char (point-max))
+     (insert "(* answer 2)\n")
+     (backward-char 2)
+     (extempore-send-definition)
+     (should (equal (extempore-test--next-result) "=> 80"))
+     (goto-char (point-min))
+     (search-forward "(car")
+     (extempore-send-definition)
+     (should (string-match-p "car argument, 5, is an integer" (extempore-test--next-result))))))
+
+(ert-deftest extempore-eval-buffer-marks-the-form-which-failed ()
+  (skip-unless (and extempore-test-program extempore-test-port))
+  (extempore-test--with-server
+   "(define b 1)\n(car b)\n(+ 1 2)\n"
+   (lambda ()
+     (extempore-send-buffer)
+     (should (string-match-p "car argument" (extempore-test--next-result)))
+     (let ((overlay (car extempore--results)))
+       (should (= (line-number-at-pos (overlay-start overlay)) 2))))))
+
+(provide 'extempore-mode-test)
+
+;;; extempore-mode-test.el ends here
