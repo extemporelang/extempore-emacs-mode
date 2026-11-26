@@ -625,6 +625,31 @@ head's line, the body aligns with the first of the rest (where
              (+ (current-column) 4))
             (t (+ (current-column) 2))))))
 
+(defun extempore--call-indent (state indent-point)
+  "The indentation inside a call, the innermost list in STATE.
+Aligned with the first argument when that shares the head's line, and two
+columns from the parenthesis when it doesn't."
+  (save-excursion
+    (goto-char (1+ (elt state 1)))
+    (forward-sexp 1)
+    (let ((head-line (line-number-at-pos)))
+      (forward-comment (buffer-size))
+      (if (and (< (point) indent-point) (= (line-number-at-pos) head-line))
+          (current-column)
+        (goto-char (elt state 1))
+        (+ (current-column) 2)))))
+
+(defun extempore--body-indent (state)
+  "Two columns from the parenthesis of the innermost list in STATE."
+  (save-excursion
+    (goto-char (elt state 1))
+    (+ (current-column) 2)))
+
+(defconst extempore--definition-regexp
+  "\\`\\(?:define\\(?:\\*\\|[-c].*\\)?\\|def-.*\\|with-.*\\)\\'"
+  "A name whose body indents two columns, after any namespace: define, define*,
+define-macro, definec, def-instrument, with-... (but not defined? or default).")
+
 (defun extempore--first-element-column (state indent-point)
   "The column of the first element of the innermost list in STATE.
 One past its parenthesis when that element starts on INDENT-POINT's line."
@@ -675,13 +700,16 @@ indentation."
 			 (get (intern-soft function) 'extempore-indent-hook)))
 	(cond ((or (eq method 'defun)
 		   (and (null method)
-			(string-match "\\`define\\(?:-\\|c\\|\\'\\)" function)))
-	       (lisp-indent-defform state indent-point))
+			(let ((case-fold-search nil))
+			  (string-match-p extempore--definition-regexp
+					  (replace-regexp-in-string "\\`.*:" "" function)))))
+	       (extempore--body-indent state))
 	      ((integerp method)
 	       (extempore--specform-indent method state
 					   indent-point normal-indent))
 	      (method
-               (funcall method state indent-point normal-indent))))))))
+               (funcall method state indent-point normal-indent))
+	      (t (extempore--call-indent state indent-point))))))))
 
 
 ;;; 'let' is different in Scheme/xtlang
@@ -702,24 +730,20 @@ indentation."
       (extempore--specform-indent 2 state indent-point normal-indent)
     (extempore--specform-indent 1 state indent-point normal-indent)))
 
-;; (put 'begin 'extempore-indent-function 0), say, causes begin to be indented
-;; like defun if the first form is placed on the next line, otherwise
-;; it is indented like any other form (i.e. forms line up under first).
+;; An integer is the number of arguments a form distinguishes from its body.
+;; One which distinguishes none (begin) indents as a call does, so it needs no
+;; entry. `extempore fmt' and tree-sitter-extempore's queries/indents.scm name
+;; the same forms, so that every editor indents alike: keep the three in step.
 
-;; `extempore fmt' and tree-sitter-extempore's queries/indents.scm name the
-;; same forms, so that every editor indents alike: keep the three in step.
-
-(put 'begin 'extempore-indent-function 0)
-(put 'beginz 'extempore-indent-function 0)
 (put 'case 'extempore-indent-function 1)
 (put 'when 'extempore-indent-function 1)
 (put 'unless 'extempore-indent-function 1)
 (put 'do 'extempore-indent-function 2)
-(put 'delay 'extempore-indent-function 0)
 (put 'dotimes 'extempore-indent-function 1)
 (put 'doloop 'extempore-indent-function 1)
 (put 'while 'extempore-indent-function 1)
 (put 'lambda 'extempore-indent-function 1)
+(put 'lambda* 'extempore-indent-function 1)
 (put 'lambdaz 'extempore-indent-function 1)
 (put 'lambdas 'extempore-indent-function 1)
 (put 'lambdah 'extempore-indent-function 1)
@@ -737,10 +761,17 @@ indentation."
 (put 'bind-dylib 'extempore-indent-function 'defun)
 (put 'bind-instrument 'extempore-indent-function 'defun)
 (put 'bind-sampler 'extempore-indent-function 'defun)
+(put 'macro 'extempore-indent-function 'defun)
 (put 'let 'extempore-indent-function 'extempore-let-indent)
 (put 'letz 'extempore-indent-function 'extempore-let-indent)
 (put 'let* 'extempore-indent-function 'extempore-let-indent)
 (put 'letrec 'extempore-indent-function 'extempore-let-indent)
+(put 'letrec* 'extempore-indent-function 1)
+(put 'let-values 'extempore-indent-function 1)
+(put 'let*-values 'extempore-indent-function 1)
+(put 'parameterize 'extempore-indent-function 1)
+(put 'guard 'extempore-indent-function 1)
+(put 'receive 'extempore-indent-function 2)
 (put 'let-syntax 'extempore-indent-function 1)
 (put 'letrec-syntax 'extempore-indent-function 1)
 (put 'syntax-rules 'extempore-indent-function 1)
