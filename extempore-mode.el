@@ -577,17 +577,18 @@ head's line, the body aligns with the first of the rest (where
 
 (defun extempore--call-indent (state indent-point)
   "The indentation inside a call, the innermost list in STATE.
-Aligned with the first argument when that shares the head's line, and two
-columns from the parenthesis when it doesn't."
+Aligned with the first argument when that shares the head's line, and with
+the head when it doesn't."
   (save-excursion
     (goto-char (1+ (elt state 1)))
-    (forward-sexp 1)
-    (let ((head-line (line-number-at-pos)))
-      (forward-comment (buffer-size))
-      (if (and (< (point) indent-point) (= (line-number-at-pos) head-line))
-          (current-column)
-        (goto-char (elt state 1))
-        (+ (current-column) 2)))))
+    (skip-chars-forward " \t")
+    (let ((head-column (current-column)))
+      (forward-sexp 1)
+      (let ((head-line (line-number-at-pos)))
+        (forward-comment (buffer-size))
+        (if (and (< (point) indent-point) (= (line-number-at-pos) head-line))
+            (current-column)
+          head-column)))))
 
 (defun extempore--body-indent (state)
   "Two columns from the parenthesis of the innermost list in STATE."
@@ -681,10 +682,14 @@ indentation."
     (extempore--specform-indent 1 state indent-point normal-indent)))
 
 ;; An integer is the number of arguments a form distinguishes from its body.
-;; One which distinguishes none (begin) indents as a call does, so it needs no
-;; entry. `extempore fmt' and tree-sitter-extempore's queries/indents.scm name
-;; the same forms, so that every editor indents alike: keep the three in step.
+;; `extempore fmt' and tree-sitter-extempore's queries/indents.scm name the
+;; same forms, so that every editor indents alike: keep the three in step.
 
+(put 'begin 'extempore-indent-function 0)
+(put 'beginz 'extempore-indent-function 0)
+(put 'delay 'extempore-indent-function 0)
+(put 'cond 'extempore-indent-function 0)
+(put 'case-lambda 'extempore-indent-function 0)
 (put 'case 'extempore-indent-function 1)
 (put 'when 'extempore-indent-function 1)
 (put 'unless 'extempore-indent-function 1)
@@ -727,11 +732,7 @@ indentation."
 (put 'syntax-rules 'extempore-indent-function 1)
 (put 'syntax-case 'extempore-indent-function 2) ; not r5rs
 (put 'call-with-input-file 'extempore-indent-function 1)
-(put 'with-input-from-file 'extempore-indent-function 1)
-(put 'with-input-from-port 'extempore-indent-function 1)
 (put 'call-with-output-file 'extempore-indent-function 1)
-(put 'with-output-to-file 'extempore-indent-function 1)
-(put 'with-output-to-port 'extempore-indent-function 1)
 (put 'call-with-values 'extempore-indent-function 1) ; r5rs?
 (put 'dynamic-wind 'extempore-indent-function 3) ; r5rs?
 

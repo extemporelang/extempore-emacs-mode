@@ -28,6 +28,39 @@
   (should (equal (extempore--summary '(:values [] :out "" :error (:message "bad\nworse")))
                  "bad")))
 
+(defconst extempore-test-indented
+  "(define (f x)
+  (cond
+    ((> x 0)
+     (xtc:aot:suppress-aot-do
+      (sys:load \"a.xtm\")))
+    (else
+     (begin (println x)
+            x))))
+
+(def-instrument beep
+  \"a sine wave\"
+  (params
+   (level 0.25 \"output level\")))
+
+(let loop ((i 0)
+           (acc '()))
+  (when (< i 3)
+    (loop (+ i 1) (cons i acc))))
+
+(define notes '(60 63 62
+                67 72))
+"
+  "Code as `extempore fmt' indents it, which this mode's indentation follows.")
+
+(ert-deftest extempore-indents-as-extempore-fmt-does ()
+  (with-temp-buffer
+    (insert (replace-regexp-in-string "^ +" "" extempore-test-indented))
+    (let ((extempore-transport 'legacy))
+      (extempore-mode))
+    (indent-region (point-min) (point-max))
+    (should (equal (buffer-string) extempore-test-indented))))
+
 (ert-deftest extempore-definition-bounds ()
   (with-temp-buffer
     (insert "(define a 1)\n\n(define (f x)\n  (* x 2))  \n")
