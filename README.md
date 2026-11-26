@@ -50,11 +50,7 @@ set). Set `extempore-format-on-save` to format each file as it's saved.
 Extempore releases before the nREPL server only accept code over a socket on
 port 7099. Set `extempore-transport` to `legacy`, then connect a buffer with
 <kbd>C-c C-j</kbd> (`extempore-connect`; with a prefix argument it asks for
-the host and port). A buffer can be connected to several Extempores at once,
-and sends each evaluation to all of them: `extempore-connect-multiple` connects
-to each of `extempore-multiple-connection-list`, such as
-`(("localhost" . 7099) ("192.168.1.20" . 7099))`. `extempore-disconnect`
-closes them.
+the host and port). `extempore-disconnect` closes the connection.
 
 ## Tests
 

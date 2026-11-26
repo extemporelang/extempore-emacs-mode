@@ -74,6 +74,31 @@
     (pcase-let ((`(,start . ,end) (extempore--definition-bounds)))
       (should (equal (buffer-substring start end) "(define (f x)\n  (* x 2))")))))
 
+(ert-deftest extempore-legacy-transport-sends-a-form-per-line ()
+  (let* ((extempore-transport 'legacy)
+         (received "")
+         (server (make-network-process
+                  :name "fake eval server" :server t :host 'local :service t
+                  :filter (lambda (proc string)
+                            (setq received (concat received string))
+                            (process-send-string proc "40\n"))))
+         (port (process-contact server :service)))
+    (unwind-protect
+        (with-temp-buffer
+          (extempore-mode)
+          (insert "(define a\n  40)\n")
+          (should-error (extempore-send-buffer) :type 'user-error)
+          (extempore-connect "localhost" port)
+          (should (equal mode-line-process (format " localhost:%d" port)))
+          (extempore-send-buffer)
+          (with-timeout (5 (ert-fail "nothing arrived"))
+            (while (string-empty-p received)
+              (accept-process-output nil 0.05)))
+          (should (equal received "(define a\n  40)\r\n"))
+          (extempore-disconnect)
+          (should-not extempore-connection))
+      (delete-process server))))
+
 (defun extempore-test--with-server (text body)
   "Visit TEXT in an `extempore-mode' buffer with Eglot connected, and run BODY."
   (let* ((dir (make-temp-file "extempore-test" t))

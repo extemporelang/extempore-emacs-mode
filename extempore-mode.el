@@ -889,28 +889,13 @@ did."
 
 ;;; The legacy transport
 
-;; Each buffer has its own connections to legacy eval servers, and sends code
-;; to all of them.
-(defvar-local extempore-connection-list nil
-  "This buffer's connections to legacy eval servers.")
+(defvar-local extempore-connection nil
+  "This buffer's connection to a legacy eval server.")
 
-(defun extempore--update-mode-line ()
-  "Show this buffer's legacy connections in the mode line."
-  (setq mode-line-process
-        (mapconcat (lambda (proc)
-                     (let ((host (process-contact proc :host)))
-                       (format " %s%d"
-                               (if (string= host "localhost") "" (concat host ":"))
-                               (process-contact proc :service))))
-                   extempore-connection-list "")))
-
-(defun extempore--sync-connections ()
-  "Forget the connections which have closed."
-  (dolist (proc extempore-connection-list)
-    (unless (memq (process-status proc) '(run open))
-      (setq extempore-connection-list (delq proc extempore-connection-list))
-      (delete-process proc)))
-  (extempore--update-mode-line))
+(defun extempore--connected-p ()
+  "Non-nil if this buffer's legacy connection is open."
+  (and extempore-connection
+       (memq (process-status extempore-connection) '(run open))))
 
 (defun extempore--legacy-filter (_proc string)
   "Show STRING, a legacy eval server's answer, in the echo area."
@@ -925,41 +910,26 @@ and `extempore-default-port'."
        (list (read-string "Host: " extempore-default-host)
              (read-number "Port: " extempore-default-port))
      (list extempore-default-host extempore-default-port)))
-  (extempore--sync-connections)
-  (if (cl-find-if (lambda (proc)
-                    (and (string= host (process-contact proc :host))
-                         (= port (process-contact proc :service))))
-                  extempore-connection-list)
-      (message "Already connected to %s:%d" host port)
-    (let ((proc (open-network-stream "extempore" nil host port)))
-      (set-process-coding-system proc 'utf-8-unix 'utf-8-unix)
-      (set-process-filter proc #'extempore--legacy-filter)
-      (setq extempore-connection-list (append extempore-connection-list (list proc)))
-      (extempore--update-mode-line))))
-
-(defvar-local extempore-multiple-connection-list nil
-  "Legacy eval servers for `extempore-connect-multiple', as ((HOST . PORT) ...).")
-
-(defun extempore-connect-multiple ()
-  "Connect to every eval server in `extempore-multiple-connection-list'."
-  (interactive)
-  (pcase-dolist (`(,host . ,port) extempore-multiple-connection-list)
-    (extempore-connect host port)))
+  (extempore-disconnect)
+  (let ((proc (open-network-stream "extempore" nil host port)))
+    (set-process-coding-system proc 'utf-8-unix 'utf-8-unix)
+    (set-process-filter proc #'extempore--legacy-filter)
+    (setq extempore-connection proc)
+    (setq mode-line-process (format " %s:%d" host port))))
 
 (defun extempore-disconnect ()
-  "Close this buffer's connections to legacy eval servers."
+  "Close this buffer's connection to a legacy eval server."
   (interactive)
-  (mapc #'delete-process extempore-connection-list)
-  (setq extempore-connection-list nil)
-  (extempore--update-mode-line))
+  (when extempore-connection
+    (delete-process extempore-connection))
+  (setq extempore-connection nil)
+  (setq mode-line-process nil))
 
 (defun extempore--legacy-send (code)
-  "Send CODE to each of this buffer's legacy eval servers."
-  (extempore--sync-connections)
-  (unless extempore-connection-list
+  "Send CODE to this buffer's legacy eval server."
+  (unless (extempore--connected-p)
     (user-error "Not connected to an eval server: connect with C-c C-j"))
-  (dolist (proc extempore-connection-list)
-    (process-send-string proc (concat code "\r\n"))))
+  (process-send-string extempore-connection (concat code "\r\n")))
 
 ;;; Extempore in a buffer
 
