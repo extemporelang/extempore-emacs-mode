@@ -163,6 +163,20 @@
      (extempore-send-definition)
      (should (string-match-p "car argument, 5, is an integer" (extempore-test--next-result))))))
 
+(ert-deftest extempore-interrupt-a-runaway-loop ()
+  (skip-unless (and extempore-test-program extempore-test-port))
+  (extempore-test--with-server
+   "(let loop ((i 0)) (loop (+ i 1)))\n\n(+ 1 2)\n"
+   (lambda ()
+     (goto-char (point-min))
+     (extempore-send-definition)
+     (sleep-for 0.5)
+     (extempore-interrupt)
+     (should (equal (extempore-test--next-result) "interrupted"))
+     (search-forward "(+ 1")
+     (extempore-send-definition)
+     (should (equal (extempore-test--next-result) "=> 3")))))
+
 (ert-deftest extempore-eval-buffer-marks-the-form-which-failed ()
   (skip-unless (and extempore-test-program extempore-test-port))
   (extempore-test--with-server
