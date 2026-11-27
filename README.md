@@ -31,7 +31,7 @@ which it finds as `extempore send` does: `$EXTEMPORE_NREPL_PORT`, then a
 | `extempore-send-region`            | <kbd>C-c C-r</kbd>          | the region                                       |
 | `extempore-send-buffer`            | <kbd>C-c C-k</kbd>          | the buffer, as it stands                         |
 | `extempore-interrupt`              | <kbd>C-c C-b</kbd>          | stop the evaluation which is running             |
-| `switch-to-extempore`              | <kbd>C-c C-z</kbd>          | go to the `*extempore*` buffer, or start Extempore there |
+| `extempore-switch-to-process-buffer` | <kbd>C-c C-z</kbd>        | go to the `*extempore*` buffer, or start Extempore there |
 | `extempore-repl`                   | <kbd>C-c C-e</kbd>          | a REPL on the running Extempore (`extempore repl`) |
 | `extempore-format-buffer`          |                             | format with `extempore fmt`                      |
 

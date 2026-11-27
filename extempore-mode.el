@@ -55,7 +55,8 @@
 ;;              or the region
 ;;   C-c C-k    `extempore-send-buffer'
 ;;   C-c C-b    `extempore-interrupt'
-;;   C-c C-z    `switch-to-extempore': start Extempore in a buffer, or go to it
+;;   C-c C-z    `extempore-switch-to-process-buffer': start Extempore in a
+;;              buffer, or go to it
 ;;
 ;; For an Extempore older than its nREPL server, set `extempore-transport' to
 ;; `legacy' and connect to its eval server on port 7099 with C-c C-j.
@@ -262,7 +263,7 @@ If nil, the primary process."
   "C-c C-k" #'extempore-send-buffer
   "C-c C-b" #'extempore-interrupt
   "C-c M-e" #'extempore-send-definition-and-go
-  "C-c C-z" #'switch-to-extempore
+  "C-c C-z" #'extempore-switch-to-process-buffer
   "C-c C-e" #'extempore-repl
   "C-c C-j" #'extempore-connect)
 
@@ -483,6 +484,8 @@ It indents as this mode does, so this tidies what's been typed or pasted."
        (if (eq (char-after) ?\() 2 0)))
 
 (defun extempore-font-lock-syntactic-face-function (state)
+  "The face for the string or comment which STATE, a `syntax-ppss', is in.
+A #; comment's text is also given comment syntax, up to the end of its sexp."
   (when (and (null (nth 3 state))
 	     (eq (char-after (nth 8 state)) ?#)
 	     (eq (char-after (1+ (nth 8 state))) ?\;))
@@ -537,11 +540,12 @@ vector, a quoted list, or a list inside a quoted one which isn't unquoted."
         nil)))
 
 (defun extempore--specform-indent (count state indent-point _normal-indent)
-  "The indentation inside a form which distinguishes COUNT arguments from its body.
-The body indents two columns from the form's parenthesis, and a distinguished
-argument on a line of its own four. When more than COUNT arguments share the
-head's line, the body aligns with the first of the rest (where
-`lisp-indent-specform' aligns it with the first argument)."
+  "The indentation at INDENT-POINT in a form with COUNT special arguments.
+STATE is the `parse-partial-sexp' state there.  The body indents two columns
+from the form's parenthesis, and a special argument on a line of its own four.
+When more than COUNT arguments share the head's line, the body aligns with the
+first of the rest (where `lisp-indent-specform' aligns it with the first
+argument)."
   (save-excursion
     (let ((open (elt state 1))
           (before 0)
@@ -576,7 +580,7 @@ head's line, the body aligns with the first of the rest (where
             (t (+ (current-column) 2))))))
 
 (defun extempore--call-indent (state indent-point)
-  "The indentation inside a call, the innermost list in STATE.
+  "The indentation at INDENT-POINT inside a call, the innermost list in STATE.
 Aligned with the first argument when that shares the head's line, and with
 the head when it doesn't."
   (save-excursion
@@ -598,8 +602,9 @@ the head when it doesn't."
 
 (defconst extempore--definition-regexp
   "\\`\\(?:define\\(?:\\*\\|[-c].*\\)?\\|def-.*\\|with-.*\\)\\'"
-  "A name whose body indents two columns, after any namespace: define, define*,
-define-macro, definec, def-instrument, with-... (but not defined? or default).")
+  "A name, after any namespace, whose form's body indents two columns.
+Such as define, define*, define-macro, definec, def-instrument and with-...,
+but not defined? or default.")
 
 (defun extempore--first-element-column (state indent-point)
   "The column of the first element of the innermost list in STATE.
@@ -614,15 +619,14 @@ One past its parenthesis when that element starts on INDENT-POINT's line."
 ;; FIXME this duplicates almost all of lisp-indent-function.
 ;; Extract common code to a subroutine.
 (defun extempore-indent-function (indent-point state)
-  "Extempore mode function for the value of the variable `lisp-indent-function'.
-This behaves like the function `lisp-indent-function', except that:
-
-i) it checks for a non-nil value of the property `extempore-indent-function'
-\(or the deprecated `extempore-indent-hook'), rather than `lisp-indent-function'.
-
-ii) if that property specifies a function, it is called with three
-arguments (not two), the third argument being the default (i.e., current)
-indentation."
+  "The indentation at INDENT-POINT, for the variable `lisp-indent-function'.
+STATE is the `parse-partial-sexp' state there.  Like the function
+`lisp-indent-function', but it reads a form's method from the symbol property
+`extempore-indent-function' (or the older `extempore-indent-hook'): `defun', a
+count of special arguments, or a function called with STATE, INDENT-POINT and
+the current indentation.  A form with no method whose name matches
+`extempore--definition-regexp' indents as `defun', and a data list aligns with
+its first element."
   (if (extempore--data-list-p state)
       (extempore--first-element-column state indent-point)
   (let ((normal-indent (current-column)))
@@ -665,17 +669,9 @@ indentation."
 
 ;;; 'let' is different in Scheme/xtlang
 
-(defun would-be-symbol (string)
-  (not (string-equal (substring string 0 1) "(")))
-
-(defun next-sexp-as-string ()
-  ;; Assumes that it is protected by a save-excursion
-  (forward-sexp 1)
-  (let ((the-end (point)))
-    (backward-sexp 1)
-    (buffer-substring (point) the-end)))
-
 (defun extempore-let-indent (state indent-point normal-indent)
+  "The indentation at INDENT-POINT in a let form, with STATE and NORMAL-INDENT.
+A named let has two special arguments, and any other let one."
   (skip-chars-forward " \t")
   (if (looking-at "[-a-zA-Z0-9+*/?!@$%^&_:~]")
       (extempore--specform-indent 2 state indent-point normal-indent)
@@ -795,7 +791,7 @@ indentation."
   "Evaluate the top-level form at point, then switch to the Extempore buffer."
   (interactive)
   (extempore-send-definition)
-  (switch-to-extempore))
+  (extempore-switch-to-process-buffer))
 
 (defun extempore-interrupt ()
   "Stop the evaluation which is running."
@@ -936,7 +932,7 @@ and `extempore-default-port'."
 (defvar extempore-buffer "*extempore*"
   "The buffer `extempore-run' starts Extempore in.")
 
-(define-derived-mode inferior-extempore-mode comint-mode "Inferior Extempore"
+(define-derived-mode extempore-inferior-mode comint-mode "Inferior Extempore"
   "Major mode for the buffer Extempore runs in."
   (setq mode-line-process '(":%s")))
 
@@ -958,10 +954,10 @@ Interactively, ask for both, starting from `extempore-program-args' and
       (setq default-directory (file-name-as-directory (expand-file-name run-directory)))
       (apply #'make-comint-in-buffer "extempore" (current-buffer) (extempore--program) nil
              (split-string-and-unquote (or program-args "")))
-      (inferior-extempore-mode))))
+      (extempore-inferior-mode))))
 
 ;;;###autoload
-(defun switch-to-extempore ()
+(defun extempore-switch-to-process-buffer ()
   "Switch to the buffer Extempore runs in, starting it if it isn't running."
   (interactive)
   (if (comint-check-proc extempore-buffer)
@@ -1005,6 +1001,9 @@ Interactively, ask for both, starting from `extempore-program-args' and
 (define-obsolete-function-alias 'extempore-find-executable #'extempore--program "2.0")
 (define-obsolete-function-alias 'extempore-send-buffer-or-region #'extempore-send-dwim "2.0")
 (define-obsolete-function-alias 'extempore-disconnect-all #'extempore-disconnect "2.0")
+(define-obsolete-function-alias 'switch-to-extempore
+  #'extempore-switch-to-process-buffer "2.0")
+(define-obsolete-function-alias 'inferior-extempore-mode #'extempore-inferior-mode "2.0")
 
 (provide 'extempore-mode)
 
