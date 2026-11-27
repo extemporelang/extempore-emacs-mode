@@ -1,15 +1,16 @@
 name: CI
 
+# The tests which evaluate run against the latest Extempore release; the weekly
+# run notices a release which breaks them.
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
-
-env:
-  # the extempore release the tests which evaluate run against
-  EXTEMPORE_RELEASE: v0.12.0
 
 jobs:
   test:
@@ -31,10 +32,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sudo apt-get update -q && sudo apt-get install -yq libasound2t64
-          gh release download "$EXTEMPORE_RELEASE" -R digego/extempore \
-            -p "extempore-linux-x86_64-$EXTEMPORE_RELEASE.zip" -D "$RUNNER_TEMP"
-          unzip -q "$RUNNER_TEMP/extempore-linux-x86_64-$EXTEMPORE_RELEASE.zip" -d "$RUNNER_TEMP"
-          xtm="$RUNNER_TEMP/extempore-linux-x86_64-$EXTEMPORE_RELEASE/extempore"
+          gh release download -R digego/extempore -p "extempore-linux-x86_64-*.zip" \
+            -D "$RUNNER_TEMP/release"
+          unzip -q "$RUNNER_TEMP"/release/*.zip -d "$RUNNER_TEMP/release"
+          xtm=$(echo "$RUNNER_TEMP"/release/extempore-linux-x86_64-*/extempore)
+          basename "$RUNNER_TEMP"/release/*.zip  # the release tested against
           mkdir "$RUNNER_TEMP/run" && cd "$RUNNER_TEMP/run"
           "$xtm" --no-audio --no-legacy-server --nrepl-port 0 > extempore.log 2>&1 &
           for _ in $(seq 60); do [ -s .nrepl-port ] && break; sleep 1; done
