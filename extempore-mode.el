@@ -812,7 +812,10 @@ A named let has two special arguments, and any other let one."
 The result shows when the evaluation finishes; Emacs carries on meanwhile."
   (let* ((server (extempore--server))
          (buffer (current-buffer))
-         (marker (and end (copy-marker end)))
+         (marker (and end (copy-marker (save-excursion
+                                         (goto-char end)
+                                         (skip-chars-backward " \t\n" start)
+                                         (point)))))
          (argument (append (eglot--TextDocumentIdentifier)
                            (and start
                                 (list :range
@@ -893,9 +896,20 @@ did."
   (and extempore-connection
        (memq (process-status extempore-connection) '(run open))))
 
-(defun extempore--legacy-filter (_proc string)
-  "Show STRING, a legacy eval server's answer, in the echo area."
-  (message "%s" (string-trim-right string)))
+(defun extempore--legacy-filter (proc string)
+  "Show what a legacy eval server sent PROC, STRING, a reply at a time.
+Each reply ends with a NUL, and one may arrive in pieces."
+  (let* ((parts (split-string (concat (process-get proc 'extempore-partial) string)
+                              "\0"))
+         (replies (delete "" (mapcar #'string-trim (butlast parts)))))
+    (process-put proc 'extempore-partial (car (last parts)))
+    (with-current-buffer (get-buffer-create "*extempore output*")
+      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+        (dolist (reply replies)
+          (insert reply "\n"))))
+    (when replies
+      (message "%s" (car (last replies))))))
 
 (defun extempore-connect (host port)
   "Connect to the legacy eval server on HOST and PORT.

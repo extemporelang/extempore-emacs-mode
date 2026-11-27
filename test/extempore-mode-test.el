@@ -75,13 +75,15 @@
       (should (equal (buffer-substring start end) "(define (f x)\n  (* x 2))")))))
 
 (ert-deftest extempore-legacy-transport-sends-a-form-per-line ()
+  "And shows each reply, which ends with a NUL and may come in pieces."
   (let* ((extempore-transport 'legacy)
          (received "")
          (server (make-network-process
                   :name "fake eval server" :server t :host 'local :service t
                   :filter (lambda (proc string)
                             (setq received (concat received string))
-                            (process-send-string proc "40\n"))))
+                            (process-send-string proc "4")
+                            (process-send-string proc "0\0"))))
          (port (process-contact server :service)))
     (unwind-protect
         (with-temp-buffer
@@ -95,6 +97,12 @@
             (while (string-empty-p received)
               (accept-process-output nil 0.05)))
           (should (equal received "(define a\n  40)\r\n"))
+          (with-timeout (5 (ert-fail "no reply shown"))
+            (while (not (string-suffix-p
+                         "\n40\n"
+                         (with-current-buffer (get-buffer-create "*extempore output*")
+                           (concat "\n" (buffer-string)))))
+              (accept-process-output nil 0.05)))
           (extempore-disconnect)
           (should-not extempore-connection))
       (delete-process server))))
@@ -143,6 +151,13 @@
      (backward-char 2)
      (extempore-send-definition)
      (should (equal (extempore-test--next-result) "=> 80"))
+     ;; a region of whole lines is answered beside its last line of code
+     (goto-char (point-min))
+     (search-forward "(+ answer")
+     (extempore-send-region (match-beginning 0)
+                            (progn (search-forward "(car") (line-beginning-position)))
+     (should (equal (extempore-test--next-result) "=> 42"))
+     (should (= (line-number-at-pos (overlay-start (car extempore--results))) 4))
      (goto-char (point-min))
      (search-forward "(car")
      (extempore-send-definition)
