@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # the extempore release the tests which evaluate run against
+  EXTEMPORE_RELEASE: v0.12.0
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # the oldest Package-Requires allows, and the latest releases
+        emacs: ["29.1", "30.2", "31.1"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: purcell/setup-emacs@bdc64dc730ae1fcba200bfd52cb1b4cf6159cbe5 # v8.0
+        with:
+          version: ${{ matrix.emacs }}
+      - name: Byte-compile
+        run: emacs -Q --batch --eval "(setq byte-compile-error-on-warn t)" -f batch-byte-compile extempore-mode.el
+      - name: Extempore
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sudo apt-get update -q && sudo apt-get install -yq libasound2t64
+          gh release download "$EXTEMPORE_RELEASE" -R digego/extempore \
+            -p "extempore-linux-x86_64-$EXTEMPORE_RELEASE.zip" -D "$RUNNER_TEMP"
+          unzip -q "$RUNNER_TEMP/extempore-linux-x86_64-$EXTEMPORE_RELEASE.zip" -d "$RUNNER_TEMP"
+          xtm="$RUNNER_TEMP/extempore-linux-x86_64-$EXTEMPORE_RELEASE/extempore"
+          mkdir "$RUNNER_TEMP/run" && cd "$RUNNER_TEMP/run"
+          "$xtm" --no-audio --no-legacy-server --nrepl-port 0 > extempore.log 2>&1 &
+          for _ in $(seq 60); do [ -s .nrepl-port ] && break; sleep 1; done
+          echo "EXTEMPORE_TEST_PROGRAM=$xtm" >> "$GITHUB_ENV"
+          echo "EXTEMPORE_TEST_PORT=$(cat .nrepl-port)" >> "$GITHUB_ENV"
+      - name: Test
+        run: emacs -Q --batch -L . -l test/extempore-mode-test.el -f ert-run-tests-batch-and-exit
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: purcell/setup-emacs@bdc64dc730ae1fcba200bfd52cb1b4cf6159cbe5 # v8.0
+        with:
+          version: "31.1"
+      - name: checkdoc
+        run: |
+          emacs -Q --batch --eval '(progn (require (quote checkdoc)) (checkdoc-file "extempore-mode.el"))' 2>&1 | tee checkdoc.log
+          [ ! -s checkdoc.log ]
+      - name: package-lint
+        run: |
+          emacs -Q --batch --eval '(progn (require (quote package)) (add-to-list (quote package-archives) (quote ("melpa" . "https://melpa.org/packages/")) t) (package-initialize) (package-refresh-contents) (package-install (quote package-lint)))'
+          emacs -Q --batch --eval '(package-initialize)' -l package-lint -f package-lint-batch-and-exit extempore-mode.el
